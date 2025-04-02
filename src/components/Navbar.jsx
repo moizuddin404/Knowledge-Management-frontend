@@ -41,7 +41,7 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="static" sx={{bgcolor: "#ffffff"}} elevation={0}>
+    <AppBar position="static" sx={{bgcolor: "#FAFAFA"}} elevation={0}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography

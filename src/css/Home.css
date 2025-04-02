@@ -1,5 +1,5 @@
 body {
-    background-color: #ffffff;
+    background-color: #FAFAFA;
     margin: 0;
     padding: 0;
 }
@@ -15,5 +15,22 @@ body {
 
 .all-knowledge-cards {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
 }
+
+@media screen and (min-width: 1024px ) {
+    .all-knowledge-cards {
+        justify-content: flex-start;
+    }
+}
+
+@media screen and (max-width: 425px) {
+    .all-knowledge-cards {
+        align-items: center;
+    }
+}
+
 
