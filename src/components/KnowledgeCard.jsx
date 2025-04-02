@@ -24,19 +24,16 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
   };
 
   const handleAddTag = () => {
-    // Implement tag addition logic
     alert('Add Tag functionality to be implemented');
     setIsMenuOpen(false);
   };
 
   const handleAddLink = () => {
-    // Implement link addition logic for Summary tab
     alert('Add Link functionality to be implemented');
     setIsMenuOpen(false);
   };
 
   const handleGoToSource = () => {
-    // Implement go to source logic
     alert('Go to Source functionality to be implemented');
     setIsMenuOpen(false);
   };
@@ -49,22 +46,21 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
     }
   };
 
-  const handleGenerateSummary = async () => {
-    try {
-      // This would be replaced with actual API call
-      const response = await fetch('/api/generate-summary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ currentSummary: summaryContent })
-      });
-      const data = await response.json();
-      setSummaryContent(data.newSummary);
-    } catch (error) {
-      console.error('Error generating summary:', error);
-    }
-  };
+  // const handleGenerateSummary = async () => {
+  //   try {
+  //     const response = await fetch('/api/generate-summary', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ currentSummary: summaryContent })
+  //     });
+  //     const data = await response.json();
+  //     setSummaryContent(data.newSummary);
+  //   } catch (error) {
+  //     console.error('Error generating summary:', error);
+  //   }
+  // };
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -77,7 +73,7 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
   };
 
   return (
-    <div className="knowledge-card-wrapper">
+<>
       <div 
         className="knowledge-card" 
         onClick={toggleExpand}
@@ -121,9 +117,6 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
                 >
                   <MoreVertIcon/>
                 </button>
-                <a href={source} target="_blank">
-                  <button className="source-btn">Source</button>
-                </a>
                 {isMenuOpen && (
                   <div className="dropdown-menu">
                     {activeTab === 'Note' && (
@@ -185,17 +178,24 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
                   )}
                   {!isEditing && (
                     <>
-                    <button 
+                    {/* <button 
                       className="generate-summary-btn"
                       onClick={handleGenerateSummary}
                     >
                       Generate Summary
-                    </button>
+                    </button> */}
+                    <hr />
+                    <p className="tags-head">TAGS</p>
                     {tags.map((tag, index) => (
-                    <button key={index} className="generate-summary-btn">
+                    <button key={index} className="tag">
                       {tag}
                     </button>
                   ))}
+                  <div className="source-container"> 
+                   <a href={source} target="_blank">
+                      <button className="source-btn">Source</button>
+                  </a>
+                  </div>
                     </>
                   )}
                 </div>
@@ -210,7 +210,7 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
           </div>
         </div>
       )}
-    </div>
+      </>
   );
 }
 

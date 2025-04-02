@@ -1,12 +1,14 @@
+import AddKnowledgeCard from "./AddKnowledgeCard";
 import KnowledgeCard from "./KnowledgeCard";
 
-const AllKnowledgeCards = ({ cardData }) => {
+const AllKnowledgeCards = ({ cardData, refreshCards}) => {
   if (!cardData || cardData.length === 0) {
     return <p>No knowledge cards to display.</p>;
   }
 
   return (
     <div className="all-knowledge-cards">
+      <AddKnowledgeCard onSave={refreshCards}/>
       {cardData.map((card) => (
         <KnowledgeCard
           key={card.card_id}
