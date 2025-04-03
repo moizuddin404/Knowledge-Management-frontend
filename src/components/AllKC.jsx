@@ -9,7 +9,9 @@ const AllKnowledgeCards = ({ cardData, refreshCards}) => {
   return (
     <div className="all-knowledge-cards">
       <AddKnowledgeCard onSave={refreshCards}/>
-      {cardData.map((card) => (
+      {cardData.sort((a,b) => {
+        return new Date(b.created_at) - new Date(a.created_at);
+      }).map((card) => (
         <KnowledgeCard
           key={card.card_id}
           thumbnail={card.thumbnail}
