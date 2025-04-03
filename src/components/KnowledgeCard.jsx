@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../css/KnowledgeCard.css";
 import CancelIcon from '@mui/icons-material/Cancel';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryContent, tags, source}) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -99,6 +100,11 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
             >
               <CancelIcon/>
             </button>
+            {/* <button className="source-icon">
+            <a href={source} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', marginRight: '5px' }}>
+              <OpenInNewIcon />
+            </a>
+            </button> */}
             <div className="tabs-container">
             <div className="tabs">
               {['Note', 'Summary'].map(tab => (
@@ -110,6 +116,7 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
                   {tab}
                 </button>
               ))}
+               
               <div className="more-menu">
                 <button 
                   className="more-icon"
@@ -173,8 +180,9 @@ const KnowledgeCard = ({thumbnail, title, initialNoteContent, initialSummaryCont
                       />
                       <button className="save-editing" onClick={handleEditToggle}>save</button>
                       </>
-                  ) : (
+                  ) : (<>
                     <p>{summaryContent}</p>
+                  </>
                   )}
                   {!isEditing && (
                     <>

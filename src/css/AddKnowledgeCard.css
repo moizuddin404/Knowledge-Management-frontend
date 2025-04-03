@@ -26,13 +26,24 @@
   
   .note-input {
     width: 100%;
+    height: 10vh;
     padding: 16px;
     border: none;
     background-color: transparent;
     color: #666;
     font-size: 20px;
+    resize: none;
   }
   
+  .note-input::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .note-input::-webkit-scrollbar-thumb {
+    background: #14304e;
+    border-radius: 5px;
+  }
+
   .link-input, .note-input, .save-button {
     font-family: "Varela Round", sans-serif;
   }
@@ -101,13 +112,25 @@
         margin-left: 0;
         margin-right: 12px;
         padding: 32px;
+        padding-bottom: 0;
     }
+
+
+  }
+  @media screen and (min-width: 600px) {
+    .save-button {
+      position: relative;
+      bottom: 8px;
+      left: 86%;
+  }
+
+
   }
 
   @media screen and (min-width: 978px) {
     .save-button {
         position: relative;
-        top: 40px;
-        left: 8px;
+        bottom: 8px;
+        left: 86%;
     }
   }

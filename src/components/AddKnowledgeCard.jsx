@@ -57,8 +57,7 @@ const AddKnowledgeCard = ({onSave}) => {
       </div>
       
       <div className="input-container">
-        <input
-          type="text"
+        <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Add Note here|"
@@ -66,7 +65,7 @@ const AddKnowledgeCard = ({onSave}) => {
         />
       </div>
       
-      <div className="button-container">
+      
         <button
           onClick={handleSave}
           disabled={isLoading || !link}
@@ -74,7 +73,7 @@ const AddKnowledgeCard = ({onSave}) => {
         >
           {isLoading ? 'Saving...' : 'Save'}
         </button>
-      </div>
+     
     </div>
   );
 };
