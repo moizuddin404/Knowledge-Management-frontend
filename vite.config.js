@@ -6,9 +6,13 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [tailwindcss(), react()],
   server: {
+    host: true,
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none",
       "Cross-Origin-Embedder-Policy": "unsafe-none",
     },
+  },
+  preview: {
+    allowedHosts: ["brieffy-frontend.onrender.com"],
   },
 });
