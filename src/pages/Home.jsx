@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "../css/Home.css";
@@ -9,7 +9,7 @@ const Home = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   const [searchQuery, setSearchQuery] = useState("");
   // Function to fetch knowledge cards
-  const fetchKnowledgeCards = () => {
+  const fetchKnowledgeCards = useCallback(() => {
   const token = localStorage.getItem("token");
 
     axios
@@ -20,11 +20,11 @@ const Home = () => {
       .catch((error) => {
         console.error("Error fetching knowledge cards:", error);
       });
-  };
+  });
 
   useEffect(() => {
     fetchKnowledgeCards();
-  }, []);
+  }, [fetchKnowledgeCards]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
