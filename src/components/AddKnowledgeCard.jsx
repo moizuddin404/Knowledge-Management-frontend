@@ -71,7 +71,7 @@ const AddKnowledgeCard = ({onSave}) => {
           disabled={isLoading || !link}
           className="save-button"
         >
-          {isLoading ? 'Saving...' : 'Save'}
+          {isLoading ? 'Saving' : 'Save'}
         </button>
      
     </div>
