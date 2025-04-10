@@ -26,19 +26,47 @@
   
   .note-input {
     width: 100%;
+    height: 10vh;
     padding: 16px;
     border: none;
     background-color: transparent;
     color: #666;
     font-size: 20px;
+    resize: none;
   }
   
+  .scroll-class::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scroll-class::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  
+  }
+  .scroll-class::-webkit-scrollbar-track {
+    background: gray;
+    border-radius: 2px;
+  }
+
   .link-input, .note-input, .save-button {
     font-family: "Varela Round", sans-serif;
   }
 
   .link-input:focus, .note-input:focus {
     outline: none;
+  }
+  .expanded-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
   }
   
   .button-container {
@@ -101,13 +129,25 @@
         margin-left: 0;
         margin-right: 12px;
         padding: 32px;
+        padding-bottom: 0;
     }
+
+
+  }
+  @media screen and (min-width: 600px) {
+    .save-button {
+      position: relative;
+      bottom: 14px;
+      left: 84%;
+  }
+
+
   }
 
   @media screen and (min-width: 978px) {
     .save-button {
         position: relative;
-        top: 40px;
-        left: 8px;
+        bottom: 14px;
+        left: 84%;
     }
   }

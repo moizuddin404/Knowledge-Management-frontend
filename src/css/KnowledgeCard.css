@@ -5,6 +5,7 @@
     align-items: center;
     flex: 1 1 250px; 
     min-width: 150px;
+    max-width: 300px;
     height: 250px; 
     background-color: #e7faf5;
     border-radius: 20px;
@@ -130,7 +131,7 @@
   top: 36px;
   right: 0;
   width: 150px;
-  background: #fff;
+  background: #94b3b8;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -139,6 +140,7 @@
 }
 
 .dropdown-menu button {
+  color: #fff;
   padding: 10px 16px;
   border: none;
   background: transparent;
@@ -148,13 +150,13 @@
 }
 
 .dropdown-menu button:hover {
-  background-color: #f5f5f5;
+  background-color: #789397;
+  border-radius: 12px;
 }
 
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(80vh - 150px);
   padding-right: 8px;
 }
 
@@ -194,12 +196,9 @@
 }
 
 .source-btn {
-  margin: 4px;
-  padding: 10px 20px;
   background-color: #1f7281;
   color: white;
   border: none;
-  border-radius: 16px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -229,22 +228,26 @@
 }
 
 .tab-content::-webkit-scrollbar-track {
-  background: #e7faf5;
-  border-radius: 5px;
+  background: transparent;
+  border-radius: 3px;
 }
 
 .tab-content::-webkit-scrollbar-thumb {
- background-color: #1f7281;
- border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  transition: background-color 0.3s;
 }
+
+.tab-content:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
 
 .tag {
   margin: 4px;
   padding: 10px 20px;
-  background-color: #c6dfd7;
   color: #757373;
   border: none;
-  border-radius: 16px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -254,6 +257,17 @@
   justify-content: flex-end;
 }
 
+.source-icon {
+  background: none;
+  border: none;
+  text-decoration: none;
+  color: inherit;
+  margin-right: 5px;
+  width: 10px;
+  position: absolute;
+  top: 5.5%;
+  right: 11.5%;
+}
 @media screen and (max-width : 659px ) {
 
   .meeting-notes-card {

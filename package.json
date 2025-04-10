@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --host 0.0.0.0 --port $PORT"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,10 +18,17 @@
     "@react-oauth/google": "^0.12.1",
     "@tailwindcss/vite": "^4.1.1",
     "axios": "^1.8.4",
+    "draft-js": "^0.11.7",
+    "draftjs-to-html": "^0.9.1",
+    "html-to-draftjs": "^1.5.0",
     "jwt-decode": "^4.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-draft-wysiwyg": "^1.15.0",
     "react-router-dom": "^7.4.0",
+    "react-toastify": "^11.0.5",
+    "scrollbar": "^0.1.12",
+    "tailwind": "^4.0.0",
     "tailwindcss": "^4.1.1"
   },
   "devDependencies": {
@@ -32,6 +40,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "vite": "^6.2.0"
   }
 }
