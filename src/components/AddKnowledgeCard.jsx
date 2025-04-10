@@ -37,7 +37,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
         setEditorState(newEditorState);
       }
     }
-  }, [isOpen]); // Load only when opened
+  }, [isOpen]);
 
   const handleSave = async () => {
     if (!link) return;
@@ -86,55 +86,57 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
     <>
       <div>
         <button
-          className='w-24 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition'
+          className="w-24 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition"
           onClick={() => setIsOpen(!isOpen)}
         >
           Add Card
         </button>
       </div>
-
-      {isOpen &&
-        <div className='fixed top-0 left-0 w-full h-full bg-black/60 flex items-center justify-center z-[999]' onClick={() => setIsOpen(false)}>
-          <div className="w-[50%] h-[60%] p-6 border rounded-md bg-white shadow-md" onClick={(e) => e.stopPropagation()}>
-            {/* {isLoading && <div className="loading-overlay">Saving... Please wait</div>} */}
-
+  
+      {isOpen && (
+        <div
+          className="fixed top-0 left-0 w-full h-full text-black bg-black/60 flex items-center justify-center z-[999] px-4"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[70%] lg:max-w-[60%] xl:max-w-[50%] h-[80%] md:h-[70%] bg-white p-4 sm:p-6 rounded-md shadow-md overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Link Input */}
-            <div className="flex justify-center input-container mb-4">
+            <div className="mb-4 flex justify-center items-center gap-3 flex-col sm:flex-row">
               <input
                 type="text"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="Enter Link: https://example.com/article"
-                className="w-full p-3 rounded-md text-center bg-gray-400/10 text-black placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 border-2 border-gray-300"
+                className="w-full p-3 rounded-md text-center bg-gray-100 text-black placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 border border-gray-300"
               />
-            </div>
 
-            {/* Inline Rich Text Editor */}
-            <div className="input-container text-black border-1 h-70 p-2.5 mb-4">
+              <button
+                  onClick={handleSave}
+                  disabled={isLoading || !link}
+                  className="w-24 h-12 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Saving' : 'Save'}
+              </button>
+            </div>
+  
+            {/* Rich Text Editor */}
+            <div className="mb-4 h-72 sm:h-34">
               <Editor
                 editorState={editorState}
                 onEditorStateChange={setEditorState}
                 toolbarClassName="sticky top-0 z-10 bg-white border-b border-gray-200"
-                wrapperClassName="w-full h-full"
-                editorClassName="p-2 border border-gray-300 overflow-y-auto min-h-46 max-h-46"
+                wrapperClassName="w-full h-auto"
+                editorClassName="p-2 border border-gray-300 overflow-y-auto min-h-[200px] max-h-[250px]"
               />
             </div>
-
-            {/* Save Button */}
-            <div className="mb-4 flex justify-end">
-              <button
-                onClick={handleSave}
-                disabled={isLoading || !link}
-                className="relative bottom-3 w-20 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Saving' : 'Save'}
-              </button>
-            </div>
+  
           </div>
         </div>
-      }
+      )}
     </>
-  );
+  );  
 };
 
 export default AddKnowledgeCard;
