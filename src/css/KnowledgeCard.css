@@ -157,7 +157,6 @@
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(80vh - 150px);
   padding-right: 8px;
 }
 
@@ -197,12 +196,9 @@
 }
 
 .source-btn {
-  margin: 4px;
-  padding: 10px 20px;
   background-color: #1f7281;
   color: white;
   border: none;
-  border-radius: 16px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -232,22 +228,26 @@
 }
 
 .tab-content::-webkit-scrollbar-track {
-  background: #e7faf5;
-  border-radius: 5px;
+  background: transparent;
+  border-radius: 3px;
 }
 
 .tab-content::-webkit-scrollbar-thumb {
- background-color: #1f7281;
- border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  transition: background-color 0.3s;
 }
+
+.tab-content:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
 
 .tag {
   margin: 4px;
   padding: 10px 20px;
-  background-color: #c6dfd7;
   color: #757373;
   border: none;
-  border-radius: 16px;
   cursor: pointer;
   font-weight: 600;
 }
