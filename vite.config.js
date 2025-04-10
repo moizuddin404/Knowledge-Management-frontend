@@ -2,12 +2,15 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import rollupNodePolyFill from "rollup-plugin-node-polyfills";
-// https://vite.dev/config/
+import inject from "@rollup/plugin-inject";
+
 export default defineConfig({
   plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
-      global: "globalthis", // 👈 Important
+      global: "globalthis",
+      buffer: "buffer",
+      process: "process/browser",
     },
   },
   server: {
@@ -18,6 +21,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    include: ["buffer", "process"],
     esbuildOptions: {
       define: {
         global: "globalThis",
@@ -26,7 +30,13 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      plugins: [rollupNodePolyFill()],
+      plugins: [
+        rollupNodePolyFill(),
+        inject({
+          Buffer: ["buffer", "Buffer"],
+          process: "process",
+        }),
+      ],
     },
   },
   preview: {

@@ -163,7 +163,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
         {/* Category Tag */}
           {cardData?.category && (
             <Tooltip title="Category" arrow>
-              <div className=" absolute bottom-2 left-5 bg-gray-300 flex items-center justify-center text-black rounded-md w-auto pt-0.5 pl-1 pr-1">
+              <div className=" absolute bottom-2 left-5 text-sm bg-gray-300 flex items-center justify-center text-black rounded-md w-auto pt-0.5 pl-1 pr-1">
                 {cardData.category}
               </div>
             </Tooltip>
