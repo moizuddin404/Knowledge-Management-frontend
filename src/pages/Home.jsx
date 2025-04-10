@@ -72,6 +72,7 @@ const Home = () => {
       .finally(()=>setIsLoading(false));
   }, [backendUrl]);
 
+  // dropdown filter
   useEffect(() => {
     if (filter === "All") {
       fetchKnowledgeCards();
@@ -82,6 +83,7 @@ const Home = () => {
     }
   }, [filter, fetchKnowledgeCards, fetchFavouriteKnowledgeCards, fetchArchivedCards]);
 
+  // search filter
   const filteredCards = kcData.filter((card) => {
     return (
       card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,8 +139,7 @@ const Home = () => {
         </div>
 
       </div>
-        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} isLoading={isLoading}/>
-        {showSkeletonCard && <SkeletonCard />}
+        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
         
         {/* Toast Notification */}
         <ToastContainer />

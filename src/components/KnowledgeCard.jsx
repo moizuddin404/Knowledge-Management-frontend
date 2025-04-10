@@ -211,167 +211,160 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
 
       
       {isExpanded && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" >
-          <div className="flex flex-col relative bg-white w-[80%] h-[80%] rounded-lg shadow-lg p-4"> 
-            <button 
-              className="absolute top-8 right-6 text-black" 
-              onClick={toggleExpand}
-            >
-              <CancelIcon/>
-            </button>
-            {/* <button className="source-icon">
-            <a href={source} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', marginRight: '5px' }}>
-              <OpenInNewIcon />
-            </a>
-            </button> */}
-            <div className="self-center flex justify-center items-center w-[20%] bg-gray-300 rounded-md p-2 mt-2 mb-4">
-            <div className="flex gap-2 w-full">
-              {['Note', 'Summary'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => handleTabChange(tab)}
-                  className={`w-full text-black px-3 py-1 rounded-md transition-all duration-100
-                    ${activeTab === tab ? 'bg-white font-semibold shadow-inner' : 'hover:bg-[#fafafa]'}`}
-                >
-                  {tab}
-                </button>
-              ))}
-               
-              <div className="absolute top-6 right-12">
-                <IconButton 
-                  className="more-icon"
+        <div className="fixed inset-0 text-black bg-black/60 flex items-center justify-center z-50 px-4">
+          <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] rounded-xl shadow-xl p-4 overflow-hidden">
+            
+            
+            {/* Tab Buttons + Menu + Export */}
+            <div className="w-full flex flex-col md:flex-row justify-between items-center bg-gray-100 rounded-md p-2 gap-2 mb-4">
+              
+              <div className="flex w-full md:w-1/3 gap-2">
+                {['Note', 'Summary'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => handleTabChange(tab)}
+                    className={`w-full px-4 py-2 rounded-md transition-all duration-150 text-sm
+                      ${activeTab === tab
+                        ? 'bg-white font-semibold shadow-inner'
+                        : 'hover:bg-gray-200 text-black'}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Close -- Menu == Export Controls */}
+              <div className="relative flex items-center gap-2 mt-2 md:mt-0">
+
+                {/* More Menu */}
+                <IconButton
+                  className="text-black"
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
-                  <MoreVertIcon sx={{color: "black"}}/>
+                  <MoreVertIcon />
                 </IconButton>
 
+
+
                 {isMenuOpen && (
-                  <div className="dropdown-menu z-auto">
-                    {activeTab === 'Note' && (
-                      <>
-                        <button onClick={handleEditToggle}>
-                          {isEditing ? 'Stop Editing' : 'Edit'}
-                        </button>
-                        <button onClick={handleAddTag}>Add Tag</button>
-                        <button onClick={handleGoToSource}>Go to Source</button>
-                      </>
-                    )}
-                    {activeTab === 'Summary' && (
-                      <>
-                        <button onClick={handleEditToggle}>
-                          {isEditing ? 'Stop Editing' : 'Edit'}
-                        </button>
-                        <button onClick={handleAddLink}>Add Tags</button>
-                        <button onClick={handleGoToSource}>Go to Source</button>
-                      </>
-                    )}
+                  <div className="absolute top-10 right-10 bg-white shadow-lg rounded-md py-2 z-50 flex flex-col text-sm min-w-[140px]">
+                    <button className="px-4 py-2 hover:bg-gray-100" onClick={handleEditToggle}>
+                      {isEditing ? 'Stop Editing' : 'Edit'}
+                    </button>
+                    <button className="px-4 py-2 hover:bg-gray-100" onClick={activeTab === 'Note' ? handleAddTag : handleAddLink}>
+                      {activeTab === 'Note' ? 'Add Tag' : 'Add Tags'}
+                    </button>
+                    <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
+                      Go to Source
+                    </button>
                   </div>
                 )}
-                
-                {/* Export Card Button */}
-                <div className="absolute top-0 right-8 z-10">
+
+                {/* Export Menu */}
+                <div className="relative">
                   <Tooltip title="Export Card as" arrow>
-                    <IconButton onClick={(e) => {
-                      e.stopPropagation();
-                      setIsDownloadMenuOpen(!isDownloadMenuOpen);
-                    }}>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDownloadMenuOpen(!isDownloadMenuOpen);
+                      }}
+                    >
                       <ArrowOutwardIcon style={{ color: 'black' }} />
                     </IconButton>
                   </Tooltip>
-                  {/* Dropdown */}
-                  <div className={`absolute bg-gray-200 text-black text-sm rounded-md shadow-md z-10 flex flex-col w-14 transition-all duration-300 ease-in-out origin-top ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
-                    <button className="py-1 hover:bg-emerald-300 rounded-t-xl" onClick={(e)=>{e.stopPropagation(); onExportClick(cardData, 'pdf'); setIsDownloadMenuOpen(!isDownloadMenuOpen)}}>pdf</button>
-                    <button className="py-1 hover:bg-emerald-300 rounded-b-xl" onClick={(e)=>{e.stopPropagation(); onExportClick(cardData, 'docx'); setIsDownloadMenuOpen(!isDownloadMenuOpen)}}>docx</button>
+
+                  <div className={`absolute right-0 top-10 bg-white shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
+                    <button
+                      className="block w-full px-4 py-2 hover:bg-emerald-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExportClick(cardData, 'pdf');
+                        setIsDownloadMenuOpen(false);
+                      }}
+                    >
+                      PDF
+                    </button>
+                    <button
+                      className="block w-full px-4 py-2 hover:bg-emerald-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExportClick(cardData, 'docx');
+                        setIsDownloadMenuOpen(false);
+                      }}
+                    >
+                      DOCX
+                    </button>
                   </div>
                 </div>
-                {/* Source Button
-                <div className="absolute top-0 right-8">
-                  <Tooltip title="Go to Source" arrow>
-                    <IconButton onClick={
-                      handleGoToSource}>
-                      <LinkIcon sx={{color: "black"}}/>
-                    </IconButton>
-                  </Tooltip>
-                </div> */}
+
+                   {/* Close Button */}
+                <IconButton 
+                  className="text-black"
+                  onClick={toggleExpand}
+                >
+                  <CancelIcon />
+                </IconButton>
+
               </div>
             </div>
-            </div>
-            
-            <div className="tab-content h-[100%] border-t border-b ">
+
+            {/* Main Tab Content */}
+            <div className="flex-1 overflow-y-auto border-t border-b">
               {activeTab === 'Note' && (
-                <div className="note-tab bg-gray-400/10 rounded-lg p-10 text-black">
+                <div className="p-4 bg-gray-50 rounded-md text-black">
                   {isEditing ? (
                     <>
-                    {/* <textarea
-                      value={noteContent}
-                      onChange={handleContentChange}
-                      className="editable-content"
-                    /> */}
-
-                    <MyEditor
-                      note={noteContent}
-                      setNote={handleContentChange}
-                    />
-                      <button className="save-editing" onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}>save</button>
+                      <MyEditor note={noteContent} setNote={handleContentChange} />
+                      <button
+                        className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
+                        onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
+                      >
+                        Save
+                      </button>
                     </>
-                    
                   ) : (
                     <div
-                      className="note-content text-black"
+                      className="text-black"
                       dangerouslySetInnerHTML={{ __html: noteContent }}
                     />
                   )}
                 </div>
               )}
-              
+
               {activeTab === 'Summary' && (
-                <div className="summary-tab bg-gray-400/10 rounded-lg p-10 text-black">
+                <div className="p-4 bg-gray-50 rounded-md text-black">
                   {isEditing ? (
                     <>
-                    {/* <textarea
-                      value={summaryContent}
-                      onChange={handleContentChange}
-                      className="editable-content text-black"
-                      /> */}
-                      <MyEditor 
-                      note={summaryContent}
-                      setNote={handleContentChange}
-                      />
-                      <button className="save-editing" onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}>save</button>
-                      </>
-                  ) : (<>
-                    <div
-                      className="summary-content pb-10 text-black"
-                      dangerouslySetInnerHTML={{ __html: summaryContent }}
-                    />
-                  </>
-                  )}
-                  {!isEditing && (
+                      <MyEditor note={summaryContent} setNote={handleContentChange} />
+                      <button
+                        className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
+                        onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
                     <>
-                    {/* <button 
-                      className="generate-summary-btn"
-                      onClick={handleGenerateSummary}
-                    >
-                      Generate Summary
-                    </button> */}
-                    <hr />
-                    <p className="tags-head mt-2.5">TAGS</p>
-                    {cardData.tags.map((tag, index) => (
-                    <button key={index} className="tag bg-gray-300 rounded-md">
-                      {tag}
-                    </button>
-                  ))}
-                
+                      <div
+                        className="pb-4 text-black"
+                        dangerouslySetInnerHTML={{ __html: summaryContent }}
+                      />
+                      <hr />
+                      <p className="mt-3 font-medium">Tags</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {cardData.tags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-gray-300 rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </>
                   )}
                 </div>
               )}
-              
-              {/* {activeTab === 'Mindmap' && (
-                <div className="mindmap-tab">
-                  <p>Mindmap content to be implemented</p>
-                </div>
-              )} */}
             </div>
           </div>
         </div>
