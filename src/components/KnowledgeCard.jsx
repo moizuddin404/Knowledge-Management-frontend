@@ -376,7 +376,6 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
           </div>
         </div>
       )}
-      <ToastContainer />
       </>
   );
 }

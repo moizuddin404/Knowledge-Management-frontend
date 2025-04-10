@@ -4,16 +4,21 @@ import Navbar from "../components/Navbar";
 import "../css/Home.css";
 import AllKnowledgeCards from "../components/AllKC";
 import AddKnowledgeCard from "../components/AddKnowledgeCard";
+import SkeletonCard from "../components/SkeletonCard";
+import { ToastContainer } from "react-toastify";
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("All");
+  const [showSkeletonCard, setShowSkeletonCard] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   
   // Function to fetch knowledge cards
   const fetchKnowledgeCards = useCallback(() => {
+    setIsLoading(true);
   const token = localStorage.getItem("token");
 
     axios
@@ -23,7 +28,8 @@ const Home = () => {
       })
       .catch((error) => {
         console.error("Error fetching knowledge cards:", error);
-      });
+      })
+      .finally(()=> setIsLoading(false))
   }, [backendUrl]);
 
   useEffect(() => {
@@ -36,6 +42,7 @@ const Home = () => {
 
   // Favourite KC
   const fetchFavouriteKnowledgeCards = useCallback(() => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
   
     axios
@@ -45,11 +52,13 @@ const Home = () => {
       })
       .catch((error) => {
         console.error("Error fetching favourite knowledge cards:", error);
-      });
+      })
+      .finally(()=> setIsLoading(false)); 
   }, [backendUrl]);
   
   // Archived KC
   const fetchArchivedCards = useCallback(() => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
   
     axios
@@ -59,7 +68,8 @@ const Home = () => {
       })
       .catch((error) => {
         console.error("Error fetching archived cards:", error);
-      });
+      })
+      .finally(()=>setIsLoading(false));
   }, [backendUrl]);
 
   useEffect(() => {
@@ -83,10 +93,18 @@ const Home = () => {
   }
   );
 
+  const handleStartSaving = () => {
+    setShowSkeletonCard(true);
+  };
+
+  const handleSaved = () => {
+    setShowSkeletonCard(false);
+  };
+
   return ( 
   <>
       <Navbar />
-      <div className="flex flex-col md:flex-row items-center justify-between my-10 mx-5 md:mx-20 gap-4">
+      <div className="flex flex-col md:flex-row items-center justify-between my-10 mx-5 md:mx-32 md:pr-5 gap-4">
         <div className="w-full md:w-1/3 shadow-sm">
           <input
             type="text"
@@ -114,12 +132,16 @@ const Home = () => {
             </select>
         </div>
         <div className="justify-end w-full md:w-auto">
-          <AddKnowledgeCard onSave={fetchKnowledgeCards} />
+          <AddKnowledgeCard onSave={fetchKnowledgeCards} handleStartSaving={handleStartSaving} handleSaved={handleSaved}/>
         </div>
         </div>
 
       </div>
-        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} />
+        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} isLoading={isLoading}/>
+        {showSkeletonCard && <SkeletonCard />}
+        
+        {/* Toast Notification */}
+        <ToastContainer />
         </>    
   );
 };

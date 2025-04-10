@@ -14,7 +14,7 @@ import htmlToDraft from 'html-to-draftjs';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-const AddKnowledgeCard = ({ onSave }) => {
+const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [link, setLink] = useState('');
   const [note, setNote] = useState('');
@@ -43,6 +43,8 @@ const AddKnowledgeCard = ({ onSave }) => {
     if (!link) return;
 
     setIsLoading(true);
+    setIsOpen(false);
+    handleStartSaving();
 
     try {
       const token = localStorage.getItem("token");
@@ -64,7 +66,10 @@ const AddKnowledgeCard = ({ onSave }) => {
         onSave(response.data);
       }
 
-      toast.success("Card Added");
+      toast.success("Card Added" , {
+        autoClose: 3000,
+      });
+      handleSaved();
 
       setLink("");
       setNote("");
@@ -91,7 +96,7 @@ const AddKnowledgeCard = ({ onSave }) => {
       {isOpen &&
         <div className='fixed top-0 left-0 w-full h-full bg-black/60 flex items-center justify-center z-[999]' onClick={() => setIsOpen(false)}>
           <div className="w-[50%] h-[60%] p-6 border rounded-md bg-white shadow-md" onClick={(e) => e.stopPropagation()}>
-            {isLoading && <div className="loading-overlay">Saving... Please wait</div>}
+            {/* {isLoading && <div className="loading-overlay">Saving... Please wait</div>} */}
 
             {/* Link Input */}
             <div className="flex justify-center input-container mb-4">
@@ -128,8 +133,6 @@ const AddKnowledgeCard = ({ onSave }) => {
           </div>
         </div>
       }
-      {/* Toast Notification */}
-      <ToastContainer />
     </>
   );
 };
