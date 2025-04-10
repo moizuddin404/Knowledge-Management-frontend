@@ -1,20 +1,14 @@
 import React from 'react'
-import MyEditor from '../components/RichTextEditor'
 import SkeletonCard from '../components/SkeletonCard'
+import Navbar from '../components/Navbar';
 
 const Suites = () =>
      {
   return (
-    <div>
-        <div>Suites</div>
-        <div>
-      <h2>React Draft WYSIWYG Editor</h2>
-      <MyEditor />
-    </div>
-    <SkeletonCard />
-    </div>
-
-  )
+    <>
+      <Navbar />
+    </>
+  );
 }
 
 export default Suites
