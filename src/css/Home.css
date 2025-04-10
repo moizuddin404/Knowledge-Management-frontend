@@ -1,18 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Varela+Round&display=swap");
 
 body {
-    background-color: #FAFAFA;
+    background-color: #f8f8f8;
     margin: 0;
     padding: 0;
-}
-
-.knowledge-card-body-container {
-    display: flex;
-}
-
-.kc-container {
-    display: flex;  
-    
 }
 
 .all-knowledge-cards {
@@ -34,9 +25,10 @@ body {
 
 .search-container input {
     width: 94%;
-    background: #FAFAFA;
+    background: #f8f8f8;
     padding: 10px;
     border: none;
+    color: #1f7281;
     border-bottom: 1px solid #ccc;
     font-size: 16px;
 }

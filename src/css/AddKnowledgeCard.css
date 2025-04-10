@@ -35,13 +35,18 @@
     resize: none;
   }
   
-  .note-input::-webkit-scrollbar {
+  .scroll-class::-webkit-scrollbar {
     width: 8px;
   }
 
-  .note-input::-webkit-scrollbar-thumb {
-    background: #14304e;
-    border-radius: 5px;
+  .scroll-class::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  
+  }
+  .scroll-class::-webkit-scrollbar-track {
+    background: gray;
+    border-radius: 2px;
   }
 
   .link-input, .note-input, .save-button {
@@ -50,6 +55,18 @@
 
   .link-input:focus, .note-input:focus {
     outline: none;
+  }
+  .expanded-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
   }
   
   .button-container {

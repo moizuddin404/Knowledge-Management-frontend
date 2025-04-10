@@ -4,6 +4,7 @@ import SignIn from "./pages/SignIn"
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
+import Suites from "./pages/Suites";
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
         <Route path="/sign-in" element={<SignIn />}/>
         <Route element={<ProtectedRoute/>}>
         <Route path="/home" element={<Home />} />
+        <Route path="/suites" element={<Suites />} />
         </Route>
         
       </Routes>
