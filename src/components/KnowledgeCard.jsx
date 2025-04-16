@@ -85,7 +85,6 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
 
   const onLikeClick = async () => {
     const userId = user?.userId;
-    console.log(userId)
     setIsLiked(prev => !prev);
     const response = await knowledgeCardApi.handleLike(cardData, userId);
     console.log("Like response", response);
@@ -97,6 +96,12 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
     toast.success(`${response.message}`);
     refreshCards();
   };
+
+  const handleCopy = async () => {
+    const userId = user?.userId;
+    const response = await knowledgeCardApi.handleCopy(cardData, userId);
+    console.log("Like response", response);
+  }
 
   const onExportClick = async (cardData, fileFormat) => {
     try {
@@ -337,7 +342,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
                     <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
                     </button>
-                    { !isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
+                    { !isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={handleCopy}>
                       Copy to Home
                     </button>)}
                   </div>
