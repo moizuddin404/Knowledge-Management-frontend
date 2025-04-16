@@ -34,6 +34,26 @@ const handleLike = async (cardData, userId) => {
   }
 };
 
+const handleCopy = async (cardData, userId) => {
+  try {
+    console.log(cardData.card_id);
+    const res = await axios.post(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/copy-card`,
+      {},
+      {
+        params: {
+          card_id: cardData.card_id,
+          user_id: userId,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error Copying to Home:", error);
+    console.error("Server response:", error.response?.data);
+  }
+};
+
 const handleDownload = async (cardData, fileFormat) => {
   try {
     const res = await axios.get(
@@ -109,5 +129,6 @@ export default {
   handleArchive,
   handleDelete,
   handleEdit,
+  handleCopy,
   handlePublic,
 };
