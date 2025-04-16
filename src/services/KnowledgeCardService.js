@@ -14,6 +14,26 @@ const handlefavourite = async (cardData) => {
   }
 };
 
+const handleLike = async (cardData, userId) => {
+  try {
+    console.log(cardData.card_id);
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/like`,
+      {},
+      {
+        params: {
+          card_id: cardData.card_id,
+          user_id: userId,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error updating Like status:", error);
+    console.error("Server response:", error.response?.data);
+  }
+};
+
 const handleDownload = async (cardData, fileFormat) => {
   try {
     const res = await axios.get(
@@ -32,7 +52,7 @@ const handleDownload = async (cardData, fileFormat) => {
 const handleArchive = async (cardData) => {
   try {
     const res = await axios.put(
-      `${backendUrl}/knowledge-card/${cardData.id}/archive`
+      `${backendUrl}/knowledge-card/${cardData.card_id}/archive`
     );
     return res.data;
   } catch (error) {
@@ -71,10 +91,23 @@ const handleEdit = async (cardData, summaryContent, noteContent) => {
   }
 };
 
+const handlePublic = async (cardData) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/public`
+    );
+    return res.data;
+  } catch (error) {
+    console.log("Operation failed", error);
+  }
+};
+
 export default {
   handlefavourite,
+  handleLike,
   handleDownload,
   handleArchive,
   handleDelete,
   handleEdit,
+  handlePublic,
 };

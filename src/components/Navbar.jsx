@@ -13,21 +13,19 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useMediaQuery } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { InputBase } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 
 
-const pages = ['Home', 'Suites', 'About Us'];
+const pages = ['My Space', 'Public Space'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 
-function Navbar() {
+function Navbar({ searchQuery, handleSearchChange }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -44,10 +42,18 @@ function Navbar() {
     setAnchorElUser(null);
   };
 
+  const location = useLocation();
+  console.log("locationnnn",location)
+
   return (
-    <AppBar position="static" sx={{bgcolor: "#FAFAFA"}} elevation={0}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
+    <AppBar position="static" 
+    sx={{bgcolor: "#FAFAFA"}} 
+      elevation={0}
+
+      >
+
+      <Container maxWidth="2xl">
+        <Toolbar disableGutters sx={{ width: '100%', justifyContent: 'space-between', mx: '0.5rem'}} >
           <Typography
             variant="h6"
             noWrap
@@ -93,11 +99,10 @@ function Navbar() {
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={()=>{handleCloseNavMenu(); if(page === 'Home') {
+                <MenuItem key={page} onClick={()=>{handleCloseNavMenu(); if(page === 'Public Space'){
+                  navigate('/suites');
+                }else if(page === 'My Space') {
                   navigate('/home');
-                }
-                else if(page === 'Suites') {
-                  navigate('/suites')
                 }
                 }}>
                   <Typography sx={{ textAlign: 'left' }}>{page}</Typography>
@@ -105,7 +110,37 @@ function Navbar() {
               ))}
             </Menu>
           </Box>
-          <img src='Brieffy_Logo-withoutbg_zoom.png' width={'200px'}  style={{marginLeft: '20px'}}/>
+          <div className='flex '>
+            
+            <img src='Brieffy_Logo-withoutbg_zoom.png' className="justify-center w-20 sm:w-22 md:w-24 lg:w-32 xl:w-36" onClick={()=> {
+              navigate('/home')
+            }}/>
+          </div>
+          <Box sx={{ 
+                      flexGrow: 1, 
+                      display: { xs: 'none', md: 'flex' }, 
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      mx: 2 
+                    }}>
+              <InputBase
+                placeholder="Search Your Cards..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                sx={{
+                  px: 2,
+                  py: 0.5,
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                  width: '300px',
+                  fontSize: '14px',
+                  color: '#1f7281'
+                }}
+                inputProps={{ 'aria-label': 'search' }}
+              />
+            </Box>
+
           <Typography
             variant="h5"
             noWrap
@@ -123,26 +158,42 @@ function Navbar() {
             }}
           >
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } , justifyContent: 'flex-end'}}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={()=>{handleCloseNavMenu(); if(page === 'Home') {
-                  navigate('/home');
-                }
-                else if(page === 'Suites') {
-                  navigate('/suites')
-                }
-                }}
-                sx={{ my: 2, color: '#14304e', display: 'block' }}
-              >
-                {page}
-              </Button>
-            ))}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
+            {pages.map((page) => {
+              const isActive = (location.pathname === '/suites' && page === 'Public Space') || (location.pathname === '/home' && page === 'My Space');
+
+              return (
+                <Button
+                  key={page}
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    if (page === 'Public Space') {
+                      navigate('/suites');
+                    }else if(page === 'My Space') {
+                      navigate('/home');
+                    }
+                  }}
+                  sx={{
+                    my: 2,
+                    color: '#14304e',
+                    display: 'block',
+                    bgcolor: { lg: isActive ? '#d1fae5' : 'transparent' }, // green-100 only on lg+
+                    borderRadius: '6px',
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: isActive ? '#a7f3d0' : '#f0f0f0', // optional hover color
+                    },
+                  }}
+                >
+                  {page}
+                </Button>
+              );
+            })}
           </Box>
-          <Box sx={{ flexGrow: 0, pl: 7 }}>
+
+          <Box sx={{ flexGrow: 0}}>
           <Tooltip title="Open settings">
-  <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleOpenUserMenu}>
+  <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', ml: '2rem', mr: '1.5rem' }} onClick={handleOpenUserMenu}>
   {/* Google-hosted images often block third-party referrers — adding referrerPolicy="no-referrer" tells the browser not to send referrer info, so Google allows the image load */}
   <Avatar 
       alt={user?.name} 
@@ -150,13 +201,6 @@ function Navbar() {
       referrerPolicy="no-referrer"
       sx={{ width: 40, height: 40, mr: 1 }}
     > {user?.name?.charAt(0)}</Avatar>
-    {
-      !isMobile && (
-        <Typography sx={{ color: '#14304e', fontWeight: 600, mr: 1 }}>
-          {user?.name}
-        </Typography>
-      )
-    }
   </Box>
 </Tooltip>
             <Menu
