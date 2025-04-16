@@ -85,12 +85,13 @@ const Home = () => {
 
   // search filter
   const filteredCards = kcData.filter((card) => {
-    return (
-      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card.tags.some((tag) =>
-        tag.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
+    return queryWords.every((word) => 
+      card?.title?.toLowerCase().includes(word) ||
+      card?.category?.toLowerCase().includes(word) ||
+      card?.tags?.some((tag) =>
+        tag.toLowerCase().includes(word)) ||
+      card?.summary?.toLowerCase().includes(word)
     );
   }
   );
@@ -106,8 +107,9 @@ const Home = () => {
   return ( 
   <>
       <Navbar />
-      <div className="flex flex-col md:flex-row items-center justify-between my-10 mx-5 md:mx-32 md:pr-5 gap-4">
-        <div className="w-full md:w-1/3 shadow-sm">
+
+      <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 gap-4">
+        <div className="w-full md:w-1/3 lg:hidden shadow-sm">
           <input
             type="text"
             placeholder="Search Your Cards..."
@@ -139,6 +141,9 @@ const Home = () => {
         </div>
 
       </div>
+      {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
+          <p>Home</p>
+        </div> */}
         <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
         
         {/* Toast Notification */}

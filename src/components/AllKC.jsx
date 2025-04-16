@@ -2,7 +2,7 @@ import AddKnowledgeCard from "./AddKnowledgeCard";
 import KnowledgeCard from "./KnowledgeCard";
 import SkeletonCard from "./SkeletonCard";
 
-const AllKnowledgeCards = ({ cardData, refreshCards, isLoading, showSkeletonCard }) => {
+const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkeletonCard=false }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-start w-full">
@@ -32,8 +32,8 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading, showSkeletonCard
   }
 
   return (
-<div className="px-4 sm:px-6 lg:px-8 mt-8">
-  <div className="max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-6">
+<div className="px-8 md:px-12 mt-8">
+  <div className="grid gap-[2rem] grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
     {showSkeletonCard && <SkeletonCard />}
     {cardData
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))

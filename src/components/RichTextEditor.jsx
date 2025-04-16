@@ -34,7 +34,7 @@ const MyEditor = ({ note, setNote }) => {
       onEditorStateChange={setEditorState}
       toolbarClassName="sticky top-0 z-9 bg-white border-b border-gray-200"
       wrapperClassName="w-full h-full"
-      editorClassName="p-2 border border-gray-300 overflow-y-auto min-h-20 max-h-[100%]"
+      editorClassName="p-2 border border-gray-300 overflow-y-auto max-h-[100%]"
     />
   );
 };
