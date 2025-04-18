@@ -3,6 +3,8 @@ import '../css/AddKnowledgeCard.css';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CancelIcon from "@mui/icons-material/Cancel";
+import { IconButton } from '@mui/material';
 
 import {
   EditorState,
@@ -61,7 +63,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
         },
         timeout: 120000,
       });
-
+      
       if (onSave) {
         onSave(response.data);
       }
@@ -82,6 +84,16 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
     }
   };
 
+  const resetFields = () => {
+    setLink("");
+    setNote("");
+    setEditorState(EditorState.createEmpty());
+  }
+
+  const toggleExpand = () => {
+    setIsOpen(!isOpen);
+  }
+
   return (
     <>
       <div>
@@ -96,12 +108,16 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
       {isOpen && (
         <div
           className="fixed top-0 left-0 w-full h-full text-black bg-black/60 flex items-center justify-center z-[999] px-4"
-          onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[70%] lg:max-w-[60%] xl:max-w-[50%] h-[80%] md:h-[70%] bg-white p-4 sm:p-6 rounded-md shadow-md overflow-y-auto"
+            className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[70%] lg:max-w-[60%] xl:max-w-[50%] bg-white p-4 sm:p-6 rounded-md shadow-md overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            <div className='flex justify-end mb-2'>
+              <IconButton onClick={toggleExpand}>
+                <CancelIcon></CancelIcon>
+              </IconButton>
+            </div>
             {/* Link Input */}
             <div className="mb-4 flex justify-center items-center gap-3 flex-col sm:flex-row">
               <input
@@ -111,27 +127,43 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
                 placeholder="Enter Link: https://example.com/article"
                 className="w-full p-3 rounded-md text-center bg-gray-100 text-black placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 border border-gray-300"
               />
-
-              <button
-                  onClick={handleSave}
-                  disabled={isLoading || !link}
-                  className="w-24 h-12 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Saving' : 'Save'}
-              </button>
             </div>
   
             {/* Rich Text Editor */}
-            <div className="mb-4 h-72 sm:h-34">
+            <div className="mb-4">
               <Editor
                 editorState={editorState}
                 onEditorStateChange={setEditorState}
                 toolbarClassName="sticky top-0 z-10 bg-white border-b border-gray-200"
                 wrapperClassName="w-full h-auto"
-                editorClassName="p-2 border border-gray-300 overflow-y-auto min-h-[200px] max-h-[250px]"
+                editorClassName="p-2 border border-gray-300 overflow-y-auto min-h-[250px] max-h-[250px]"
               />
             </div>
-  
+            <div className='flex justify-end'> 
+
+              {/* Cancel and Save Button */}
+              <div>
+                <button
+                      onClick={
+                        ()=>{
+                          resetFields();
+                          toggleExpand();
+                        }
+                      }
+                      disabled={isLoading}
+                      className="w-24 h-12 mr-2 bg-red-600 text-white rounded hover:bg-red-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    > Cancel
+                  </button>
+                  
+                <button
+                      onClick={handleSave}
+                      disabled={isLoading || !link}
+                      className="w-24 h-12 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Saving' : 'Save'}
+                  </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
