@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import knowledgeCardApi from '../services/KnowledgeCardService';
 import { toast } from 'react-toastify';
 
-export default function DeleteDialog({ cardData, refreshCards, toggleKcMenu }) {
+export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu }) {
   const [open, setOpen] = React.useState(false);
 
   const handleClickOpen = () => {
@@ -24,7 +24,7 @@ export default function DeleteDialog({ cardData, refreshCards, toggleKcMenu }) {
         const response = await knowledgeCardApi.handleDelete(cardData);
               toast.success("Card Deleted");
               console.log(response);
-              refreshCards();
+              removeCardFromUI(cardData.card_id);
       } catch (error) {
         console.error("Error Deleting Card", error);
     }

@@ -43,7 +43,6 @@ function Navbar({ searchQuery, handleSearchChange }) {
   };
 
   const location = useLocation();
-  console.log("locationnnn",location)
 
   return (
     <AppBar position="static" 

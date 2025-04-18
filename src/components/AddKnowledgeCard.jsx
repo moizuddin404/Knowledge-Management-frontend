@@ -63,7 +63,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
         },
         timeout: 120000,
       });
-
+      
       if (onSave) {
         onSave(response.data);
       }
