@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 
-const KnowledgeCard = ({cardData, refreshCards, removeCardFromUI}) => {
+const KnowledgeCard = ({cardData, removeCardFromUI}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -46,12 +46,15 @@ const KnowledgeCard = ({cardData, refreshCards, removeCardFromUI}) => {
   };
 
   const handlePublicToggle = async () => {
-    setIsPublic(!isPublic);
     const response = await knowledgeCardApi.handlePublic(cardData);
-    if(response.status === 200) {
-      toast.success('Card made public');
+    console.log("Public Response", response);
+    if (response.status === 200) {
+      setIsPublic(!isPublic);
+      toast.success(response.message || `Card is now ${!isPublic ? "Public" : "Private"}`);
+    } else if (response.status === 400) {
+      toast.warning(response.message || "Unexpected response.");
     }
-    refreshCards();
+
     console.log("Public Response", response)
   }
 
@@ -316,6 +319,10 @@ const KnowledgeCard = ({cardData, refreshCards, removeCardFromUI}) => {
 
               {/* Close -- Menu -- Export Controls */}
               <div className="relative flex items-center gap-2 mt-2 md:mt-0">
+                <div className="flex items-center gap-2 text-black bg-gray-100 rounded-md px-2 text-xs">
+                  <p>{cardData?.copied_from ? "Copied" : null}</p>
+                </div>
+                {console.log("Card Data", cardData)}
 
                 {/* More Menu */}
                 <Tooltip title='More'>
@@ -385,7 +392,7 @@ const KnowledgeCard = ({cardData, refreshCards, removeCardFromUI}) => {
 
                    {/* Public Access Button */}
                    {
-                    isOwner && ( isPublic 
+                    cardData.copied_from == null && ( isPublic 
                       ? (
                         <Tooltip title='Make Card Private'>
                             <IconButton 
