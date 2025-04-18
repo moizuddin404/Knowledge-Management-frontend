@@ -1,16 +1,15 @@
 const SkeletonCard = () => (
-    <div className="animate-pulse border border-emerald-100 rounded p-4 shadow bg-gray-100 w-74 h-74">
-      <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-      <div className="h-4 bg-gray-300 rounded w-full mb-2 w-70 h-45"></div>
-      <div className="flex justify-between mt-6">
-        <div className="h-4 bg-gray-300 rounded w-20 mb-2 p-3"></div>
-        <div className="flex">
-            <div className="h-4 bg-gray-300 rounded-xl w-5 mb-2 p-3 mr-2"></div>
-            <div className="h-4 bg-gray-300 rounded-xl w-5 mb-2 p-3"></div>
-        </div>
-
-        </div>
+  <div className="animate-pulse border border-emerald-100 rounded-lg p-4 shadow bg-gray-100 h-[17rem] w-full">
+    <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+    <div className="bg-gray-300 rounded w-full h-44 mb-4"></div>
+    <div className="flex justify-between items-center mt-4">
+      <div className="h-4 bg-gray-300 rounded w-20"></div>
+      <div className="flex gap-2">
+        <div className="h-4 bg-gray-300 rounded-full w-5 p-3"></div>
+        <div className="h-4 bg-gray-300 rounded-full w-5 p-3"></div>
+      </div>
     </div>
-  );
-  
-  export default SkeletonCard;
+  </div>
+);
+
+export default SkeletonCard;

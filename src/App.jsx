@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
 import Suites from "./pages/Suites";
+import SharedCard from "./pages/SharedCard";
 
 const App = () => {
   return (
@@ -14,9 +15,10 @@ const App = () => {
         <Route path="/" element={<Navigate to="/sign-in" />} />
         <Route path="/sign-in" element={<SignIn />}/>
         <Route element={<ProtectedRoute/>}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/suites" element={<Suites />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/suites" element={<Suites />} />
         </Route>
+        <Route path="/shared/{token}" element={<SharedCard />} />
         
       </Routes>
     </Router>
