@@ -5,6 +5,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
 import AllKnowledgeCards from '../components/AllKC';
+import { ToastContainer } from 'react-toastify';
 
 const Suites = () =>
      {
@@ -68,7 +69,7 @@ const Suites = () =>
           <p>Public Space</p>
         </div> */}
         <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchPublicKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
-      
+      <ToastContainer position='bottom-right'/>
     </>
   );
 }

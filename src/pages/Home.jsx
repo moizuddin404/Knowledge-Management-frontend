@@ -14,87 +14,138 @@ const Home = () => {
   const [filter, setFilter] = useState("All");
   const [showSkeletonCard, setShowSkeletonCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [page, setPage] = useState(1);
+  const [favPage, setFavPage] = useState(1);
+  const [archivedPage, setArchivedPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [allFetchedCards, setAllFetchedCards] = useState([]);
+
   
   // Function to fetch knowledge cards
-  const fetchKnowledgeCards = useCallback(() => {
+  const fetchKnowledgeCards = useCallback(async (pageNum = 1) => {
     setIsLoading(true);
   const token = localStorage.getItem("token");
 
-    axios
-      .get(`${backendUrl}/knowledge-card/`, { params: { token } })
-      .then((response) => {
-        setKcData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching knowledge cards:", error);
-      })
-      .finally(()=> setIsLoading(false))
+  try {
+    const response = await axios.get(`${backendUrl}/knowledge-card/`, {
+      params: { token, skip: (pageNum - 1)*4, limit: 4 },
+    });
+
+    const newCards = response.data;
+    if (pageNum === 1) {
+      setAllFetchedCards(newCards);
+    } else {
+      setAllFetchedCards((prev) => [...prev, ...newCards]);
+    }
+
+    if (newCards.length === 0) {
+      setHasMore(false);
+    }
+  } catch (error) {
+    console.error("Error fetching knowledge cards:", error);
+  } finally {
+    setIsLoading(false);
+  }
   }, [backendUrl]);
 
+  //useeffect for all KC 
   useEffect(() => {
-    fetchKnowledgeCards();
-  }, [fetchKnowledgeCards]);
+    if (filter === "All") {
+      fetchKnowledgeCards(page);
+    }
+  }, [page, fetchKnowledgeCards]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
 
   // Favourite KC
-  const fetchFavouriteKnowledgeCards = useCallback(() => {
+  const fetchFavouriteKnowledgeCards = useCallback(async (pageNum = 1) => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
   
-    axios
-      .get(`${backendUrl}/knowledge-card/favourite`, { params: { token } })
-      .then((response) => {
-        setKcData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching favourite knowledge cards:", error);
-      })
-      .finally(()=> setIsLoading(false)); 
-  }, [backendUrl]);
+    try {
+      const response = await axios.get(`${backendUrl}/knowledge-card/favourite`, {
+        params: { token, skip: (pageNum - 1) * 4, limit: 4 },
+      });
   
+      const newCards = response.data;
+      if (pageNum === 1) {
+        setKcData(newCards);
+      } else {
+        setKcData((prev) => [...prev, ...newCards]);
+      }
+  
+      if (newCards.length === 0) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching favourite knowledge cards:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [backendUrl]);
+
   // Archived KC
-  const fetchArchivedCards = useCallback(() => {
+  const fetchArchivedCards = useCallback(async (pageNum = 1) => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
   
-    axios
-      .get(`${backendUrl}/knowledge-card/archive`, { params: { token } })
-      .then((response) => {
-        setKcData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching archived cards:", error);
-      })
-      .finally(()=>setIsLoading(false));
+    try {
+      const response = await axios.get(`${backendUrl}/knowledge-card/archive`, {
+        params: { token, skip: (pageNum - 1) * 4, limit: 4 },
+      });
+  
+      const newCards = response.data;
+      if (pageNum === 1) {
+        setKcData(newCards);
+      } else {
+        setKcData((prev) => [...prev, ...newCards]);
+      }
+  
+      if (newCards.length === 0) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching favourite knowledge cards:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [backendUrl]);
+  
 
   // dropdown filter
   useEffect(() => {
+    setPage(1);
+    setFavPage(1);
+    setHasMore(true);
+
     if (filter === "All") {
-      fetchKnowledgeCards();
+      setAllFetchedCards([]);
+      setKcData([]);
+      fetchKnowledgeCards(1);
     } else if (filter === "Favourites") {
-      fetchFavouriteKnowledgeCards();
+      setKcData([]);
+      fetchFavouriteKnowledgeCards(1);
     } else if (filter === "Archived") {
       fetchArchivedCards();
     }
   }, [filter, fetchKnowledgeCards, fetchFavouriteKnowledgeCards, fetchArchivedCards]);
 
-  // search filter
-  const filteredCards = kcData.filter((card) => {
-    const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
-    return queryWords.every((word) => 
-      card?.title?.toLowerCase().includes(word) ||
-      card?.category?.toLowerCase().includes(word) ||
-      card?.tags?.some((tag) =>
-        tag.toLowerCase().includes(word)) ||
-      card?.summary?.toLowerCase().includes(word)
+  const getFilteredCards = () => {
+    const baseData = filter === "All" ? allFetchedCards : kcData;
+  
+    if (!searchQuery.trim()) return baseData;
+  
+    return baseData.filter((card) =>
+      card?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card?.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card?.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card?.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  }
-  );
+  };
+  
+  const filteredCards = getFilteredCards();
 
   const handleStartSaving = () => {
     setShowSkeletonCard(true);
@@ -104,9 +155,44 @@ const Home = () => {
     setShowSkeletonCard(false);
   };
 
+  const removeCardFromFavs = (cardId) => {
+    setKcData((prev) => prev.filter((card) => card.card_id !== cardId));
+  };
+  
+  const removeCardFromArchived = (cardId) => {
+    setKcData((prev) => prev.filter((card) => card.card_id !== cardId));
+  };
+
+  const handleRemoveCard = useCallback((cardId) => {
+    switch (filter) {
+      case "Favourites":
+        removeCardFromFavs(cardId);
+        break;
+      case "Archived":
+        removeCardFromArchived(cardId);
+        break;
+      default:
+        setAllFetchedCards((prev) => prev.filter((card) => card.card_id !== cardId));
+    }
+  }, [filter]);
+
+  //useeffect for favourites
+    useEffect(() => {
+      if (filter === "Favourites") {
+        fetchFavouriteKnowledgeCards(favPage);
+      }
+    }, [favPage, fetchFavouriteKnowledgeCards, filter]);
+
+  //useEffect for Archives
+    useEffect(() => {
+      if (filter === "Archives") {
+        fetchArchivedCards(archivedPage);
+      }
+    }, [archivedPage, fetchArchivedCards, filter]);
+
   return ( 
   <>
-      <Navbar />
+      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
 
       <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 gap-4">
         <div className="w-full md:w-1/3 lg:hidden shadow-sm">
@@ -136,7 +222,12 @@ const Home = () => {
             </select>
         </div>
         <div className="justify-end w-full md:w-auto">
-          <AddKnowledgeCard onSave={fetchKnowledgeCards} handleStartSaving={handleStartSaving} handleSaved={handleSaved}/>
+          <AddKnowledgeCard 
+            onSave={(newCard) => {
+              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+              setShowSkeletonCard(false);
+            }}
+          handleStartSaving={handleStartSaving} handleSaved={handleSaved}/>
         </div>
         </div>
 
@@ -144,10 +235,18 @@ const Home = () => {
       {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
           <p>Home</p>
         </div> */}
-        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
+        <AllKnowledgeCards
+          cardData={filteredCards}
+          refreshCards={fetchKnowledgeCards}
+          isLoading={isLoading}
+          showSkeletonCard={showSkeletonCard}
+          loadMore={filter === "All" ? () => setPage((prev) => prev + 1) : filter === "Favourites"? ()=> setFavPage((prev) => prev + 1) : filter === "Archived"? ()=> setArchivedPage((prev) => prev + 1) :null}
+          hasMore={filter === "All" ? hasMore : filter === "Favourites"? hasMore : filter === "Archived"? hasMore : false}
+          removeCardFromUI={handleRemoveCard}
+        />
         
         {/* Toast Notification */}
-        <ToastContainer />
+        <ToastContainer position="bottom-right"/>
         </>    
   );
 };

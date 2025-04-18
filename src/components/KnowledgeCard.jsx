@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 
-const KnowledgeCard = ({cardData, refreshCards}) => {
+const KnowledgeCard = ({cardData, refreshCards, removeCardFromUI}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -94,12 +94,17 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
     const response = await knowledgeCardApi.handleArchive(cardData);
     console.log("Archive Response", response);
     toast.success(`${response.message}`);
-    refreshCards();
+    removeCardFromUI(cardData.card_id);
   };
 
   const handleCopy = async () => {
     const userId = user?.userId;
     const response = await knowledgeCardApi.handleCopy(cardData, userId);
+    if (response.status === 200) {
+      toast.success("Card Copied to Home");
+    } else { 
+      toast.error("Card already copied to Home");
+     }
     console.log("Like response", response);
   }
 
@@ -161,28 +166,16 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
     setIsKcMenuOpen(!isKcMenuOpen);
   }
 
-  const formattedDate = new Date(cardData.created_at).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  // const formattedDate = new Date(cardData.created_at).toLocaleDateString('en-GB', {
+  //   day: '2-digit',
+  //   month: 'short',
+  //   year: 'numeric',
+  // });
 
   const stripHtml = (html) => {
     const tmp = document.createElement("div");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
-  };
-
-  const getSummarySnippetFromLine3 = (htmlSummary, charLimit = 30) => {
-    const plainText = stripHtml(htmlSummary);
-    const lines = plainText.split('\n').filter(line => line.trim() !== ""); // remove empty lines
-  
-    if (lines.length >= 3) {
-      const thirdLine = lines[2];
-      return thirdLine.substring(0, charLimit) + (thirdLine.length > charLimit ? '...' : '');
-    }
-  
-    return '';
   };
 
   const openAddTag = () => {
@@ -192,7 +185,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
   return (
   <>
       <div 
-        className="relative flex flex-col items-center h-auto min-h-[18rem] max-w-[25rem] shadow-sm shadow-gray-400 cursor-pointer transition-transform transform hover:scale-105 rounded-md bg-white overflow-hidden"
+        className="relative flex flex-col items-center h-auto min-h-[17rem] max-w-[25rem] shadow-sm shadow-gray-400 cursor-pointer transition-transform transform hover:scale-105 rounded-md bg-white overflow-hidden"
         onClick={toggleExpand}
       >
         <div className="flex flex-col items-start justify-end w-[80%] mt-2 ml-5 self-start">
@@ -200,21 +193,20 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
         {/* Thumbnail */}
         <div className="flex">
           <div 
-            className="w-10 h-10 bg-cover rounded-full mt-2 flex justify-center items-center"
-            style={{ background: '#f3f3f3' }}
-          >🧠</div>
-          {/* Date */}
-          <div className="text-gray-500 text-sm flex justify-center items-center ml-8">{formattedDate}</div>
+            className="w-10 h-10 border bg-cover rounded-full mt-2 flex justify-center items-center text-xl"
+            style={{ background: '#fff' , border: '1px solid #e1e1e1' }}
+          >{cardData.thumbnail}</div>
         </div>
 
         {/* Title */}
-        <div className="font-black text-xl text-emerald-950 leading-snug min-h-[3rem] flex items-start justify-start pt-2 pr-2">
-            {cardData.title}
-          </div>
+        <div className="border-b border-gray-200 font-black text-xl text-emerald-950 leading-snug mt-3 min-h-[5rem]">
+          {cardData.title}
+        </div>
 
-          {/* brief Summary */}
-          <div className="text-gray-500 text-sm flex justify-start">{getSummarySnippetFromLine3(cardData?.summary, 60)}
-          </div>
+        {/* Summary */}
+        <div className=" text-gray-500 text-sm mt-2 min-h-[2.5rem] max-h-[3rem]">
+          {stripHtml(cardData?.summary.slice(0,100))}
+        </div>
         </div>
 
 
@@ -224,12 +216,14 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
         {/* Category Tag */}
           {cardData?.category && (
             <Tooltip title="Category" arrow>
-              <div className=" absolute bottom-2 left-5 text-sm bg-gray-300 flex items-center justify-center text-black rounded-md w-auto pt-0.5 pl-1 pr-1">
+              <div className=" absolute bottom-2 left-5 text-sm bg-gray-100 flex items-center justify-center text-black rounded-md w-auto pt-0.5 px-2">
                 {cardData.category}
               </div>
             </Tooltip>
           )}
         </div>
+        {/* Date
+        <div className="absolute bottom-2 text-gray-500 text-sm flex justify-center items-center ml-8">{formattedDate}</div> */}
 
         {/* Icons */}
         
@@ -240,7 +234,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
               e.stopPropagation();
               onFavouriteClick(cardData)
             }}>
-              {isfavourite ? <Favorite style={{ color: '#b01e28' }} /> : <FavoriteBorder />}
+              {isfavourite ? <Favorite className="text-red-500" /> : <FavoriteBorder />}
             </IconButton>
           </Tooltip>
         </div>
@@ -270,7 +264,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
             >
               {cardData.archive ? "Unarchive" : "Archive"}
             </button>
-            <DeleteDialog cardData={cardData} refreshCards={refreshCards} toggleKcMenu={toggleKcMenu}/>
+            <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>
           </div>
 
           {/* Like Button */}
@@ -278,12 +272,16 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
             cardData?.public ? 
             (
           <div className="absolute bottom-0 right-3 z-10">
-          <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
+          <Tooltip title={cardData.likes > 1
+                          ? `${cardData.likes} Likes` 
+                          : cardData.likes === 1 
+                          ? `${cardData.likes} Like` 
+                          : "No Likes"} arrow>
             <IconButton onClick={(e) => {
               e.stopPropagation();
               onLikeClick(cardData)
             }}>
-              {isLiked ? <ThumbUpRoundedIcon style={{ color: '#0000f1' }} /> : <ThumbUpOutlinedIcon />}
+              {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
             </IconButton>
           </Tooltip>
         </div>
@@ -342,7 +340,7 @@ const KnowledgeCard = ({cardData, refreshCards}) => {
                     <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
                     </button>
-                    { !isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={handleCopy}>
+                    { !isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={()=>{setIsMenuOpen(false); handleCopy(); }}>
                       Copy to Home
                     </button>)}
                   </div>
