@@ -47,7 +47,7 @@ const handleCopy = async (cardData, userId) => {
         },
       }
     );
-    return res.data;
+    return res;
   } catch (error) {
     console.error("Error Copying to Home:", error);
     console.error("Server response:", error.response?.data);
@@ -116,7 +116,7 @@ const handlePublic = async (cardData) => {
     const res = await axios.put(
       `${backendUrl}/knowledge-card/${cardData.card_id}/public`
     );
-    return res.data;
+    return res;
   } catch (error) {
     console.log("Operation failed", error);
   }
