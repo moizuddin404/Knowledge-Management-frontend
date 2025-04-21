@@ -15,6 +15,7 @@ import { AuthContext } from "../context/AuthContext";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
+import ShareDialog from "./ShareCardDialog";
 
 const KnowledgeCard = ({cardData, removeCardFromUI}) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -268,6 +269,8 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
               {cardData.archive ? "Unarchive" : "Archive"}
             </button>
             <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>
+            {/* add s=button for share */}
+            <ShareDialog cardData={cardData} toggleKcMenu={toggleKcMenu}/>    
           </div>
 
           {/* Like Button */}
