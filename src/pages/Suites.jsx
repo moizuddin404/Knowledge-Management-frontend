@@ -13,6 +13,8 @@ const Suites = () =>
       const [isLoading, setIsLoading] = useState(true);
       const [kcData, setKcData] = useState([]);
       const [showSkeletonCard] = useState(false);
+       const [hasMore, setHasMore] = useState(true);
+       const [page, setPage] = useState(1);
 
       const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
       const { user } = useContext(AuthContext);
@@ -22,35 +24,69 @@ const Suites = () =>
       };
 
        // Public KC
-        const fetchPublicKnowledgeCards = useCallback(() => {
-          setIsLoading(true);        
-          axios
-          .get(`${backendUrl}/knowledge-card/public`, {params:{user_id: user.userId}})
-          .then((response) => {
-            setKcData(response.data);
-          })
-          .catch((error) => {
-            console.error("Error fetching knowledge cards:", error);
-          })
-          .finally(()=> setIsLoading(false))
-      }, [backendUrl]);
-    
+       const fetchPublicKnowledgeCards = useCallback(async (pageNum = 1) => {
+        setIsLoading(true);
+        
+        // Check if user exists and has userId before making the request
+        if (!user || !user.userId) {
+          console.error("User data not available");
+          setIsLoading(false);
+          return;
+        }
+        
+        try {
+        const response = await axios.get(`${backendUrl}/knowledge-card/public`, {
+          params:{user_id: user.userId, skip: (pageNum - 1) * 4, limit: 4},
+        });
+
+        const newCards = response.data;
+        if ( pageNum === 1 ) {
+          setKcData(newCards);
+        } else {
+          setKcData((prev) => [...prev, ...newCards]);
+        }
+        if (newCards.length === 0) {
+          setHasMore(false);
+        }
+       } catch (error) {
+        console.error("Error fetching knowledge cards:", error);
+      } finally {
+        setIsLoading(false);
+      }
+      }, [backendUrl, user]);
+      
       useEffect(() => {
-        fetchPublicKnowledgeCards();
+        setPage(1);
+        setHasMore(true);
+        setKcData([]);
       }, [fetchPublicKnowledgeCards]);
 
+      useEffect(() => {
+        fetchPublicKnowledgeCards(page);
+      }, [page, fetchPublicKnowledgeCards]);
+
         // search filter
-  const filteredCards = kcData.filter((card) => {
-    const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
-    return queryWords.every((word) => 
-      card?.title?.toLowerCase().includes(word) ||
-      card?.category?.toLowerCase().includes(word) ||
-      card?.tags?.some((tag) =>
-        tag.toLowerCase().includes(word)) ||
-      card?.summary?.toLowerCase().includes(word)
-    );
-  }
-  );
+        const getFilteredCards = () => {
+          const baseData = kcData;
+        
+          if (!searchQuery.trim()) return baseData;
+        
+          const lowerQuery = searchQuery.toLowerCase();
+          const queryWords = lowerQuery.split(/\s+/);
+      
+          return baseData.filter((card) => {
+            const combinedWords = [
+              ...(card?.title?.toLowerCase().split(/\s+/) || []),
+              ...(card?.category?.toLowerCase().split(/\s+/) || []),
+              ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+              ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
+            ];
+          
+            return queryWords.some(qWord => combinedWords.includes(qWord));
+          });
+        };
+        
+        const filteredCards = getFilteredCards();
   return (
     <>
       <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
@@ -68,7 +104,14 @@ const Suites = () =>
         {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
           <p>Public Space</p>
         </div> */}
-        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchPublicKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
+        <AllKnowledgeCards 
+          cardData={filteredCards} 
+          refreshCards={fetchPublicKnowledgeCards} 
+          isLoading={isLoading} 
+          showSkeletonCard={showSkeletonCard}
+          loadMore={()=>setPage((prev) => prev + 1)}
+          hasMore={hasMore}
+          />
       <ToastContainer position='bottom-right'/>
     </>
   );
