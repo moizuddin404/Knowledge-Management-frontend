@@ -29,6 +29,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
   const [isAddTagOpen, setIsAddTagOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(cardData?.public)
   const [isLiked, setIsLiked] = useState(cardData?.liked_by_me);
+  const [likes, setLikes] = useState(cardData.likes);
 
   const { user } = useContext(AuthContext);
   const isOwner = user?.userId === cardData.user_id;
@@ -86,10 +87,12 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
     console.log("Favourite response", response);
   };
 
-  const onLikeClick = async () => {
+  const onLikeClick = async (e) => {
+    e.stopPropagation();
     const userId = user?.userId;
     setIsLiked(prev => !prev);
     const response = await knowledgeCardApi.handleLike(cardData, userId);
+    setLikes(prev => prev + (isLiked ? -1 : 1));
     console.log("Like response", response);
   };
 
@@ -196,9 +199,16 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
         {/* Thumbnail */}
         <div className="flex">
           <div 
-            className="w-10 h-10 border bg-cover rounded-full mt-2 flex justify-center items-center text-xl"
-            style={{ background: '#fff' , border: '1px solid #e1e1e1' }}
-          >{cardData.thumbnail}</div>
+            className="w-10 h-10 border bg-cover bg-center rounded-full mt-2 flex justify-center items-center text-xl"
+            style={{
+              background: cardData.thumbnail?.startsWith('http')
+                ? `url(${cardData.thumbnail})`
+                : '#fff',
+              border: '1px solid #e1e1e1',
+            }}
+          >
+            {!cardData.thumbnail?.startsWith('http') && cardData.thumbnail}
+          </div>
         </div>
 
         {/* Title */}
@@ -231,6 +241,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
         {/* Icons */}
         
         {/* Favourite Button */}
+        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id && 
         <div className="absolute top-3.5 right-8 z-10">
           <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
             <IconButton onClick={(e) => {
@@ -241,9 +252,9 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
             </IconButton>
           </Tooltip>
         </div>
-
+}
         {/* Card Menu Button */}
-        {isOwner &&
+        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id && 
 
           (<div className="absolute top-3.5 right-0 z-10">
           <Tooltip title="Card menu" arrow>
@@ -275,15 +286,11 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
             cardData?.public ? 
             (
           <div className="absolute bottom-0 right-3 z-10">
-          <Tooltip title={cardData.likes > 1
-                          ? `${cardData.likes} Likes` 
-                          : cardData.likes === 1 
-                          ? `${cardData.likes} Like` 
-                          : "No Likes"} arrow>
-            <IconButton onClick={(e) => {
-              e.stopPropagation();
-              onLikeClick(cardData)
-            }}>
+          <Tooltip title={likes > 1
+                          ? `${likes} Likes` 
+                          : likes === 1 
+                          ? `${likes} Like`: `No likes`} arrow>
+            <IconButton onClick={onLikeClick}>
               {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
             </IconButton>
           </Tooltip>
@@ -392,7 +399,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
 
                    {/* Public Access Button */}
                    {
-                    cardData.copied_from == null && ( isPublic 
+                    cardData.copied_from == null && isOwner &&( isPublic 
                       ? (
                         <Tooltip title='Make Card Private'>
                             <IconButton 

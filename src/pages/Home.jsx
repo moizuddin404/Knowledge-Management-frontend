@@ -55,6 +55,7 @@ const Home = () => {
     }
   }, [page, fetchKnowledgeCards]);
 
+  //search function on type setting value
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -137,12 +138,19 @@ const Home = () => {
   
     if (!searchQuery.trim()) return baseData;
   
-    return baseData.filter((card) =>
-      card?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const lowerQuery = searchQuery.toLowerCase();
+    const queryWords = lowerQuery.split(/\s+/);
+
+    return baseData.filter((card) => {
+      const combinedWords = [
+        ...(card?.title?.toLowerCase().split(/\s+/) || []),
+        ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+        ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
+      ];
+    
+      return queryWords.some(qWord => combinedWords.includes(qWord));
+    });
   };
   
   const filteredCards = getFilteredCards();
