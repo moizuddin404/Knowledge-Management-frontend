@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import "../css/Home.css";
 import AllKnowledgeCards from "../components/AllKC";
 import AddKnowledgeCard from "../components/AddKnowledgeCard";
+import UploadFileForCard from "../components/UploadFileForCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { ToastContainer } from "react-toastify";
 
@@ -229,13 +230,22 @@ const Home = () => {
               <option value="Archived">Archived</option>
             </select>
         </div>
-        <div className="justify-end w-full md:w-auto">
+        <div className="justify-end w-full md:w-auto flex flex-row items-center gap-4">
           <AddKnowledgeCard 
             onSave={(newCard) => {
               setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
               setShowSkeletonCard(false);
             }}
           handleStartSaving={handleStartSaving} handleSaved={handleSaved}/>
+
+          <UploadFileForCard
+          onSave={(newCard) => {
+            setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+            setShowSkeletonCard(false);
+          }}
+          handleStartSaving={handleStartSaving}
+          handleSaved={handleSaved}
+          />
         </div>
         </div>
 
