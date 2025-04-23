@@ -59,7 +59,7 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkelet
             return (
               user &&(
               <div ref={isLast ? lastCardRef : null} key={card.card_id} className="h-auto">
-                <KnowledgeCard cardData={card} refreshCards={refreshCards} removeCardFromUI={removeCardFromUI}/>
+                <KnowledgeCard key={card.card_id} cardData={card} refreshCards={refreshCards} removeCardFromUI={removeCardFromUI}/>
               </div>)
               
             );

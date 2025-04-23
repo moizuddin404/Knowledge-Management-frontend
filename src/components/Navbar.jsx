@@ -111,7 +111,7 @@ function Navbar({ searchQuery, handleSearchChange }) {
           </Box>
           <div className='flex '>
             
-            <img src='Brieffy_Logo-withoutbg_zoom.png' className="justify-center w-20 sm:w-22 md:w-24 lg:w-32 xl:w-36" onClick={()=> {
+            <img src='Brieffy_Logo-withoutbg_zoom.png' className="justify-center w-20 sm:w-22 md:w-24 lg:w-32 xl:w-36 cursor-pointer" onClick={()=> {
               navigate('/home')
             }}/>
           </div>
@@ -176,11 +176,11 @@ function Navbar({ searchQuery, handleSearchChange }) {
                     my: 2,
                     color: '#14304e',
                     display: 'block',
-                    bgcolor: { lg: isActive ? '#d1fae5' : 'transparent' }, // green-100 only on lg+
+                    bgcolor: { md: isActive ? '#d1fae5' : 'transparent' },
                     borderRadius: '6px',
                     px: 2,
                     '&:hover': {
-                      bgcolor: isActive ? '#a7f3d0' : '#f0f0f0', // optional hover color
+                      bgcolor: isActive ? '#a7f3d0' : '#f0f0f0',
                     },
                   }}
                 >
