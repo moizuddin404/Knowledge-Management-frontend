@@ -34,6 +34,7 @@ const SharedKnowledgeCard = () => {
         setTags(data.tags || []);
       } catch (err) {
         setError("Failed to load shared card.");
+        console.error("Error fetching shared card data:", err);
       } finally {
         setLoading(false);
       }

@@ -52,41 +52,52 @@ function ShareDialog({ cardData, toggleKcMenu }) {
   // Create the modal component
   const Modal = () => {
     if (!showModal) return null;
-
+  
     return ReactDOM.createPortal(
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={closeModal}></div>
-        <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] z-[10000] relative">
-          <h2 className="text-xl font-semibold mb-4">Share Card</h2>
-          
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center"
+        // Prevent click-throughs completely
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Backdrop – won't close modal on click */}
+        <div className="fixed inset-0 bg-black/40"></div>
+  
+        {/* Modal box */}
+        <div
+          className="bg-white rounded-xl p-6 w-96 max-w-[90vw] z-[10000] shadow-lg animate-scale-in"
+          onClick={(e) => e.stopPropagation()} // prevent bubbling inside modal
+        >
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Share Knowledge with everyone!</h2>
+  
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="w-10 h-10 border-4 border-t-4 border-blue-500 rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-blue-300 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
             <div className="mb-6">
-              <p className="mb-2">Share link:</p>
+              <p className="mb-6 text-md text-gray-700">{`Title: ${cardData.title}`}</p>
+              <p className="mb-2 text-sm text-gray-700">Share link:</p>
               <input
                 type="text"
                 value={link}
                 readOnly
-                className="w-full p-3 border rounded mb-2 bg-gray-50 font-mono text-sm"
+                className="w-full p-3 text-black border rounded bg-gray-50 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 onClick={(e) => e.target.select()}
               />
             </div>
           )}
-          
+  
           <div className="flex justify-end gap-3">
-            <button 
+            <button
               onClick={closeModal}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded"
             >
               Close
             </button>
             <button
               onClick={copyLink}
               disabled={!link || loading}
-              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${
+              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition ${
                 (!link || loading) ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -98,12 +109,24 @@ function ShareDialog({ cardData, toggleKcMenu }) {
       document.body
     );
   };
-
+  
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  
+    return () => {
+      document.body.style.overflow = 'auto'; // reset just in case
+    };
+  }, [showModal]);
+  
   return (
     <>
       {/* Share button */}
       <button
-        className="block w-full px-4 py-2 text-left hover:bg-emerald-200"
+        className="flex justify-center w-full px-4 py-2 text-left hover:bg-emerald-200"
         onClick={openShareDialog}
       >
         Share

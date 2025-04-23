@@ -124,9 +124,7 @@ const handlePublic = async (cardData) => {
 
 const handleSharedCard = async (token) => {
   try {
-    const res = await axios.get(
-      `${backendUrl}/knowledge-card/shared/${token}`
-    );
+    const res = await axios.get(`${backendUrl}/knowledge-card/shared/${token}`);
     return res.data;
   } catch (error) {
     console.log("Operation failed", error);
@@ -140,7 +138,7 @@ const handleShareLink = async (cardData) => {
       {}, // Empty body
       {
         params: {
-          user_id: cardData.user_id,  // Sent as a query parameter
+          user_id: cardData.user_id, // Sent as a query parameter
         },
       }
     );
@@ -191,6 +189,7 @@ export default {
   handlePublic,
   handleShareLink,
   handleSharedCard,
+  handleBookmark,,
   handleQuestionAnswers,
   handleKnowledgeMap,
 };
