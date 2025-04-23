@@ -8,7 +8,7 @@ import { IconButton, Tooltip } from '@mui/material';
 
 const SharedKnowledgeCard = () => {
   const { token } = useParams(); // token from URL
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(1);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [noteContent, setNoteContent] = useState("");

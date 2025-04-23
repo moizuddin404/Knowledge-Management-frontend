@@ -158,12 +158,43 @@ const handleBookmark = async (cardData, userId) => {
         params: { user_id: userId },
       }
     );
-
+    console.log(cardData.card_id)
+    // console.log(userId)
     return res;
   } catch (err) {
     console.error("Bookmark failed:", err);
   }
 };
+
+const handleQuestionAnswers = async (cardData) => {
+  try {
+    const res = await axios.post(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/generate-qna`,
+      {},
+      {
+        params: {
+          user_id: cardData.user_id,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
+  }
+};
+
+const handleKnowledgeMap = async (cardData) => {
+  try {
+    const res = await axios.get(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/knowledge-map`,
+    );
+    console.log(res.data)
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
+  }
+};
+
 
 export default {
   handlefavourite,
@@ -177,4 +208,6 @@ export default {
   handleShareLink,
   handleSharedCard,
   handleBookmark,
+  handleQuestionAnswers,
+  handleKnowledgeMap,
 };
