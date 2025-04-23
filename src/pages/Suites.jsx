@@ -44,6 +44,7 @@ const Suites = () => {
         });
 
         const newCards = response.data;
+        console.log('Fetched cards in public:', newCards);
         if (pageNum === 1) {
           setKcData(newCards);
         } else {
@@ -74,8 +75,9 @@ const Suites = () => {
                     skip: (pageNum - 1) * 4, 
                     limit: 4 },
         });
-
+        console.log('User ID:', userId); // Log the user ID for debugging
         const newCards = response.data;
+        console.log('Fetched cards in bookmarked:', newCards);
         if (pageNum === 1) {
           setKcData(newCards);
         } else {

@@ -142,9 +142,27 @@ const handleShareLink = async (cardData) => {
         },
       }
     );
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error sharing link:", error);
+  }
+};
+
+const handleBookmark = async (cardData, userId) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/bookmark`,
+      null,
+      {
+        params: { user_id: userId },
+      }
+    );
+    console.log(cardData.card_id)
+    // console.log(userId)
+    return res;
+  } catch (err) {
+    console.error("Bookmark failed:", err);
   }
 };
 
@@ -189,7 +207,7 @@ export default {
   handlePublic,
   handleShareLink,
   handleSharedCard,
-  handleBookmark,,
+  handleBookmark,
   handleQuestionAnswers,
   handleKnowledgeMap,
 };
