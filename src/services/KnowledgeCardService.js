@@ -144,10 +144,38 @@ const handleShareLink = async (cardData) => {
         },
       }
     );
-    console.log(res.data) 
     return res.data;
   } catch (error) {
     console.error("Error sharing link:", error);
+  }
+};
+
+const handleQuestionAnswers = async (cardData) => {
+  try {
+    const res = await axios.post(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/generate-qna`,
+      {},
+      {
+        params: {
+          user_id: cardData.user_id,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
+  }
+};
+
+const handleKnowledgeMap = async (cardData) => {
+  try {
+    const res = await axios.get(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/knowledge-map`,
+    );
+    console.log(res.data)
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
   }
 };
 
@@ -162,5 +190,7 @@ export default {
   handleCopy,
   handlePublic,
   handleShareLink,
-  handleSharedCard
+  handleSharedCard,
+  handleQuestionAnswers,
+  handleKnowledgeMap,
 };

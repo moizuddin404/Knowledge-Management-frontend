@@ -1,8 +1,8 @@
-import React, { useContext, useState } from "react";
+import React, { act, useContext, useState } from "react";
 import "../css/KnowledgeCard.css";
 import { IconButton, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Favorite, FavoriteBorder} from "@mui/icons-material";
+import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import PublicIcon from '@mui/icons-material/Public';
@@ -16,8 +16,10 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 import ShareDialog from "./ShareCardDialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-const KnowledgeCard = ({cardData, removeCardFromUI}) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,17 +28,25 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [noteContent, setNoteContent] = useState(cardData.note || 'No Note Yet...');
   const [summaryContent, setSummaryContent] = useState(cardData.summary || 'No Summary Yet...');
+  const [loadingQa, setLoadingQa] = useState(false);
+  const [qaContent, setQaContent] = useState(cardData.qna || []);
+  const [showGenerateButton, setShowGenerateButton] = useState(true);
+  const [visibleAnswers, setVisibleAnswers] = useState([]);
   const [isfavourite, setIsfavourite] = useState(cardData.favourite || false);
   const [isAddTagOpen, setIsAddTagOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(cardData?.public)
   const [isLiked, setIsLiked] = useState(cardData?.liked_by_me);
   const [likes, setLikes] = useState(cardData.likes);
+  const [loading, setLoading] = useState(false);
+  const [kmContent, setKmContent] = useState(cardData.knowledge_map || []);
+  const [loadingKm, setLoadingKm] = useState(false);
+  const [showGenerateMapButton, setShowGenerateMapButton] = useState(true);
 
   const { user } = useContext(AuthContext);
   const isOwner = user?.userId === cardData.user_id;
 
   const handleTabChange = (tab) => {
-    if(!isEditing) {
+    if (!isEditing) {
       setActiveTab(tab);
       setIsMenuOpen(false);
     }
@@ -109,19 +119,19 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
     const response = await knowledgeCardApi.handleCopy(cardData, userId);
     if (response.status === 200) {
       toast.success("Card Copied to Home");
-    } else { 
+    } else {
       toast.error("Card already copied to Home");
-     }
+    }
     console.log("Like response", response);
   }
 
   const onExportClick = async (cardData, fileFormat) => {
     try {
       const response = await knowledgeCardApi.handleDownload(cardData, fileFormat);
-  
+
       const mimeType = fileFormat === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       const blob = new Blob([response], { type: mimeType });
-  
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -157,7 +167,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
     }
 
   }
-  
+
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -189,45 +199,71 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
     setIsAddTagOpen(!isAddTagOpen);
   }
 
+  const handleGenerate = async () => {
+    setLoading(true);
+    const generatedQA = await knowledgeCardApi.handleQuestionAnswers(cardData);
+    setQaContent(generatedQA);
+    setLoading(false);
+    setShowGenerateButton(false);
+  };
+
+  const handleGenerateMap = async () => {
+    setLoadingKm(true);
+    const generatedKm = await knowledgeCardApi.handleKnowledgeMap(cardData);
+    console.log("Generated Knowledge Map:", generatedKm); 
+
+    setKmContent(generatedKm);
+    setLoadingKm(false);
+    setShowGenerateMapButton(false);
+  };
+
+  const handleGenerateClick = async () => {
+    setLoading(true); 
+    const generatedQA = await knowledgeCardApi.handleQuestionAnswers(cardData);
+    setQaContent(generatedQA);
+    handleTabChange('Q&A');
+    setLoading(false); 
+  };
+
   return (
-  <>
-      <div 
+    <>
+      <div
         className="relative flex flex-col items-center h-auto min-h-[17rem] max-w-[25rem] shadow-sm shadow-gray-400 cursor-pointer transition-transform transform hover:scale-105 rounded-md bg-white overflow-hidden"
         onClick={toggleExpand}
       >
         <div className="flex flex-col items-start justify-end w-[80%] mt-2 ml-5 self-start">
 
-        {/* Thumbnail */}
-        <div className="flex">
-          <div 
-            className="w-10 h-10 border bg-cover bg-center rounded-full mt-2 flex justify-center items-center text-xl"
-            style={{
-              background: cardData.thumbnail?.startsWith('http')
-                ? `url(${cardData.thumbnail})`
-                : '#fff',
-              border: '1px solid #e1e1e1',
-            }}
-          >
-            {!cardData.thumbnail?.startsWith('http') && cardData.thumbnail}
+          {/* Thumbnail */}
+          <div className="flex">
+            <div
+              className="w-10 h-10 border bg-cover bg-center rounded-full mt-2 flex justify-center items-center text-xl"
+              style={{
+                background: cardData.thumbnail?.startsWith('http')
+                  ? `url(${cardData.thumbnail})`
+                  : '#fff',
+                border: '1px solid #e1e1e1',
+              }}
+            >
+              {!cardData.thumbnail?.startsWith('http') && cardData.thumbnail}
+            </div>
           </div>
-        </div>
 
-        {/* Title */}
-        <div className="border-b border-gray-200 font-black text-xl text-emerald-950 leading-snug mt-3 min-h-[5rem]">
-          {cardData.title}
-        </div>
+          {/* Title */}
+          <div className="border-b border-gray-200 font-black text-xl text-emerald-950 leading-snug mt-3 min-h-[5rem]">
+            {cardData.title}
+          </div>
 
-        {/* Summary */}
-        <div className=" text-gray-500 text-sm mt-2 min-h-[2.5rem] max-h-[3rem]">
-          {stripHtml(cardData?.summary.slice(0,100))}
-        </div>
+          {/* Summary */}
+          <div className=" text-gray-500 text-sm mt-2 min-h-[2.5rem] max-h-[3rem]">
+            {stripHtml(cardData?.summary.slice(0, 100))}
+          </div>
         </div>
 
 
         {/* Content container */}
         <div className="flex flex-col items-start justify-end w-full px-5 py-2 space-y-1">
-          
-        {/* Category Tag */}
+
+          {/* Category Tag */}
           {cardData?.category && (
             <Tooltip title="Category" arrow>
               <div className=" absolute bottom-2 left-5 text-sm bg-gray-100 flex items-center justify-center text-black rounded-md w-auto pt-0.5 px-2">
@@ -240,80 +276,80 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
         <div className="absolute bottom-2 text-gray-500 text-sm flex justify-center items-center ml-8">{formattedDate}</div> */}
 
         {/* Icons */}
-        
+
         {/* Favourite Button */}
-        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id && 
-        <div className="absolute top-3.5 right-8 z-10">
-          <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
-            <IconButton onClick={(e) => {
-              e.stopPropagation();
-              onFavouriteClick(cardData)
-            }}>
-              {isfavourite ? <Favorite className="text-red-500" /> : <FavoriteBorder />}
-            </IconButton>
-          </Tooltip>
-        </div>
-}
+        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id &&
+          <div className="absolute top-3.5 right-8 z-10">
+            <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
+              <IconButton onClick={(e) => {
+                e.stopPropagation();
+                onFavouriteClick(cardData)
+              }}>
+                {isfavourite ? <Favorite className="text-red-500" /> : <FavoriteBorder />}
+              </IconButton>
+            </Tooltip>
+          </div>
+        }
         {/* Card Menu Button */}
-        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id && 
+        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id &&
 
           (<div className="absolute top-3.5 right-0 z-10">
-          <Tooltip title="Card menu" arrow>
-            <IconButton onClick={(e)=>{
-              e.stopPropagation();
-              toggleKcMenu();
-            }}>
-               <MoreVertIcon style={{ color: 'black' }} />
-            </IconButton>
-          </Tooltip>
-          </div>)
-          }
-            <div className={`absolute right-2 top-12 bg-[#f1f1f1] text-black shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isKcMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
-            <button
-              className="block w-full px-4 py-2 hover:bg-emerald-200"
-              onClick={(e) => {
+            <Tooltip title="Card menu" arrow>
+              <IconButton onClick={(e) => {
                 e.stopPropagation();
-                onArchiveClick();
                 toggleKcMenu();
-              }}
-            >
-              {cardData.archive ? "Unarchive" : "Archive"}
-            </button>
-            <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>
-            {/* add s=button for share */}
-            <ShareDialog cardData={cardData} toggleKcMenu={toggleKcMenu}/>    
-          </div>
-
-          {/* Like Button */}
-          {
-            cardData?.public ? 
-            (
-          <div className="absolute bottom-0 right-3 z-10">
-          <Tooltip title={likes > 1
-                          ? `${likes} Likes` 
-                          : likes === 1 
-                          ? `${likes} Like`: `No likes`} arrow>
-            <IconButton onClick={onLikeClick}>
-              {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
-            </IconButton>
-          </Tooltip>
+              }}>
+                <MoreVertIcon style={{ color: 'black' }} />
+              </IconButton>
+            </Tooltip>
+          </div>)
+        }
+        <div className={`absolute right-2 top-12 bg-[#f1f1f1] text-black shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isKcMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
+          <button
+            className="block w-full px-4 py-2 hover:bg-emerald-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              onArchiveClick();
+              toggleKcMenu();
+            }}
+          >
+            {cardData.archive ? "Unarchive" : "Archive"}
+          </button>
+          <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu} />
+          {/* add s=button for share */}
+          <ShareDialog cardData={cardData} toggleKcMenu={toggleKcMenu} />
         </div>
-        
-           ) : null
+
+        {/* Like Button */}
+        {
+          cardData?.public ?
+            (
+              <div className="absolute bottom-0 right-3 z-10">
+                <Tooltip title={likes > 1
+                  ? `${likes} Likes`
+                  : likes === 1
+                    ? `${likes} Like` : `No likes`} arrow>
+                  <IconButton onClick={onLikeClick}>
+                    {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
+                  </IconButton>
+                </Tooltip>
+              </div>
+
+            ) : null
         }
       </div>
 
-      
+
       {isExpanded && (
         <div className="fixed inset-0 text-black bg-black/60 flex items-center justify-center z-50 px-4">
           <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] rounded-xl shadow-xl p-4 overflow-hidden">
-            
-            
+
+
             {/* Tab Buttons + Menu + Export */}
             <div className="w-full flex flex-col md:flex-row justify-between items-center bg-gray-100 rounded-md p-2 gap-2 mb-4">
-              
+
               <div className="flex w-full md:w-1/3 gap-2">
-                {['Summary', 'Note'].map((tab) => (
+                {['Summary', 'Note', 'Q&A', 'Knowledge Map'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => handleTabChange(tab)}
@@ -336,12 +372,12 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
 
                 {/* More Menu */}
                 <Tooltip title='More'>
-                    <IconButton
-                      className="text-black"
-                      onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
+                  <IconButton
+                    className="text-black"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
                 </Tooltip>
 
 
@@ -357,7 +393,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
                     <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
                     </button>
-                    { !isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={()=>{setIsMenuOpen(false); handleCopy(); }}>
+                    {!isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); handleCopy(); }}>
                       Copy to Home
                     </button>)}
                   </div>
@@ -400,41 +436,41 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
                   </div>
                 </div>
 
-                   {/* Public Access Button */}
-                   {
-                    cardData.copied_from == null && isOwner &&( isPublic 
-                      ? (
-                        <Tooltip title='Make Card Private'>
-                            <IconButton 
-                                className="text-black"
-                                onClick={handlePublicToggle}
-                              >
-                                <PublicIcon />
-                            </IconButton>
-                        </Tooltip>
-                      )
-                      : (
-                        <Tooltip title='Make Card Public'>
-                            <IconButton 
-                                className="text-black"
-                                onClick={handlePublicToggle}
-                              >
-                                <PublicOffIcon />
-                            </IconButton>
-                        </Tooltip>
-                      )
-                  )
-                  }
-
-                   {/* Close Button */}
-                   <Tooltip title='Close'>
-                      <IconButton 
+                {/* Public Access Button */}
+                {
+                  cardData.copied_from == null && isOwner && (isPublic
+                    ? (
+                      <Tooltip title='Make Card Private'>
+                        <IconButton
                           className="text-black"
-                          onClick={toggleExpand}
+                          onClick={handlePublicToggle}
                         >
-                          <CancelIcon />
-                      </IconButton>
-                   </Tooltip>
+                          <PublicIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )
+                    : (
+                      <Tooltip title='Make Card Public'>
+                        <IconButton
+                          className="text-black"
+                          onClick={handlePublicToggle}
+                        >
+                          <PublicOffIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )
+                  )
+                }
+
+                {/* Close Button */}
+                <Tooltip title='Close'>
+                  <IconButton
+                    className="text-black"
+                    onClick={toggleExpand}
+                  >
+                    <CancelIcon />
+                  </IconButton>
+                </Tooltip>
               </div>
             </div>
 
@@ -491,7 +527,7 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
                             {tag}
                           </span>
                         ))}
-                        {isAddTagOpen && 
+                        {isAddTagOpen &&
                           <input type="text" />
                         }
                       </div>
@@ -499,11 +535,173 @@ const KnowledgeCard = ({cardData, removeCardFromUI}) => {
                   )}
                 </div>
               )}
+              {activeTab === 'Q&A' && (
+                  <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
+                    <div className="flex flex-col gap-4">  
+                    {qaContent.length === 0 && (
+                        <button
+                          className={`px-4 py-2 rounded-md font-semibold ${
+                            loading
+                              ? 'bg-gray-400 text-white cursor-wait'
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                          }`}
+                          onClick={handleGenerate}
+                          disabled={loading}
+                        >
+                          {loading ? 'Generating...' : 'Generate Question Answers'}
+                        </button>
+                      )}
+                      {/* Skeleton Loader */}
+                      {loading && (
+                        <div className="space-y-4 mt-4">
+                          {[...Array(5)].map((_, idx) => (
+                            <div key={idx} className="p-4 rounded-md border bg-white animate-pulse">
+                              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
+                              <div className="h-3 bg-gray-200 rounded w-full" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Render Q&A */}
+                      {!loading && qaContent?.length > 0 && (
+                        <div className="mt-4 space-y-4">
+                          {qaContent.map((item, idx) => {
+                            const isOpen = visibleAnswers.includes(idx);
+                            return (
+                              <div
+                                key={idx}
+                                className="bg-white rounded-md p-4 shadow-sm border"
+                              >
+                                <div
+                                  className="flex justify-between items-center cursor-pointer"
+                                  onClick={() =>
+                                    setVisibleAnswers((prev) =>
+                                      prev.includes(idx)
+                                        ? prev.filter((i) => i !== idx)
+                                        : [...prev, idx]
+                                    )
+                                  }
+                                >
+                                  <p className="font-semibold text-emerald-700">
+                                    Q{idx + 1}: {item.question}
+                                  </p>
+                                  {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </div>
+                                <AnimatePresence initial={false}>
+                                  {isOpen && (
+                                    <motion.div
+                                      key="content"
+                                      initial={{ opacity: 0, height: 0 }}
+                                      animate={{ opacity: 1, height: "auto" }}
+                                      exit={{ opacity: 0, height: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="overflow-hidden mt-2"
+                                    >
+                                      <p className="text-gray-700">A: {item.answer}</p>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {!loading && !qaContent?.length && (
+                        <p className="mt-4 text-gray-500 italic">No question-answers yet. Click the button to generate.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'Knowledge Map' && (
+                  <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
+                    {kmContent.length === 0 && (
+                        <button
+                          className={`px-4 py-2 rounded-md font-semibold ${
+                            loadingKm
+                              ? 'bg-gray-400 text-white cursor-wait'
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                          }`}
+                          onClick={handleGenerateMap}
+                          disabled={loadingKm}
+                        >
+                          {loadingKm ? 'Generating knowledge Map for You...' : 'Generate Knowledge Map'}  
+                        </button>
+                      )}
+                      {loadingKm && (
+                        <div className="space-y-4 mt-4">
+                          {[...Array(5)].map((_, idx) => (
+                            <div key={idx} className="p-4 rounded-md border bg-white animate-pulse">
+                              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
+                              <div className="h-3 bg-gray-200 rounded w-full" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Render Map */}
+                      {!loadingKm && kmContent && (
+                    <div className="mt-4 space-y-6">
+                      {Array.isArray(kmContent) && kmContent.map((section, sectionIdx) => (
+                        <div key={sectionIdx} className="bg-gray-50 rounded-lg p-4 shadow border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl"></span>
+                            <h2 className="text-lg font-semibold text-gray-800">{section.section}</h2>
+                          </div>
+                          <div className="space-y-3">
+                            {section.items.map((item, itemIdx) => {
+                              const idx = `${sectionIdx}-${itemIdx}`;
+                              const isOpen = visibleAnswers.includes(idx);
+                              return (
+                                <div
+                                  key={idx}
+                                  className="bg-white rounded-md p-4 shadow-sm border"
+                                >
+                                  <div
+                                    className="flex justify-between items-center cursor-pointer"
+                                    onClick={() =>
+                                      setVisibleAnswers((prev) =>
+                                        prev.includes(idx)
+                                          ? prev.filter((i) => i !== idx)
+                                          : [...prev, idx]
+                                      )
+                                    }
+                                  >
+                                  <p className="font-semibold text-emerald-700">
+                                    {item.topic} <span className="ml-2 text-sm text-gray-500">{item.difficulty}</span>
+                                  </p>
+                                    {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                  </div>
+                                  <AnimatePresence initial={false}>
+                                    {isOpen && (
+                                      <motion.div
+                                        key="content"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden mt-2"
+                                      >
+                                        <p className="text-gray-700">{item.description}</p>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    )}
+                    {!loading && !kmContent?.knowledgeMap?.length && (
+                    <p className="mt-4 text-gray-500 italic">No knowledge map available yet.</p>
+                    )}                
+                  </div>
+                )}
             </div>
           </div>
         </div>
       )}
-      </>
+    </>
   );
 }
 
