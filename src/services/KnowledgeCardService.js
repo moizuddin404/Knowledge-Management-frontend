@@ -124,9 +124,7 @@ const handlePublic = async (cardData) => {
 
 const handleSharedCard = async (token) => {
   try {
-    const res = await axios.get(
-      `${backendUrl}/knowledge-card/shared/${token}`
-    );
+    const res = await axios.get(`${backendUrl}/knowledge-card/shared/${token}`);
     return res.data;
   } catch (error) {
     console.log("Operation failed", error);
@@ -140,17 +138,32 @@ const handleShareLink = async (cardData) => {
       {}, // Empty body
       {
         params: {
-          user_id: cardData.user_id,  // Sent as a query parameter
+          user_id: cardData.user_id, // Sent as a query parameter
         },
       }
     );
-    console.log(res.data) 
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error sharing link:", error);
   }
 };
 
+const handleBookmark = async (cardData, userId) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/bookmark`,
+      null,
+      {
+        params: { user_id: userId },
+      }
+    );
+
+    return res;
+  } catch (err) {
+    console.error("Bookmark failed:", err);
+  }
+};
 
 export default {
   handlefavourite,
@@ -162,5 +175,6 @@ export default {
   handleCopy,
   handlePublic,
   handleShareLink,
-  handleSharedCard
+  handleSharedCard,
+  handleBookmark,
 };

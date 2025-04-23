@@ -62,7 +62,7 @@ const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
     return (
         <>
             <button
-                className="w-32 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition"
+                className="w-auto h-10 px-2 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition"
                 onClick={() => setIsOpen(true)}
             >
                 Upload File
