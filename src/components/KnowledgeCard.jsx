@@ -515,7 +515,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                     >
                       PDF
                     </button>
-                    <button
+                    {/* <button
                       className="block w-full px-4 py-2 hover:bg-emerald-200"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -524,7 +524,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                       }}
                     >
                       DOCX
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
