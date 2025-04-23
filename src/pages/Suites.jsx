@@ -158,9 +158,17 @@ const Suites = () => {
         </div>
       </div>
       <div className="flex justify-center">
-        <Tabs value={value} onChange={handleTabChange} aria-label="icon tabs example" className="my-4 flex justify-center">
-          <Tab icon={<AppsIcon />} aria-label="All" />
-          <Tab icon={<BookmarkIcon />} aria-label="Bookmarked" />
+        <Tabs value={value} onChange={handleTabChange} 
+          aria-label="icon tabs example" 
+          className="my-4 flex justify-center"
+          slotProps={{
+            indicator: {
+              className: 'bg-emerald-400'
+            }
+          }}
+          >
+          <Tab icon={<AppsIcon className="text-emerald-500"/>} aria-label="All"  />
+          <Tab icon={<BookmarkIcon className="text-emerald-500"/>} aria-label="Bookmarked" />
         </Tabs>
       </div>
 
