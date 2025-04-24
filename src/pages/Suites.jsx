@@ -1,60 +1,152 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import SkeletonCard from '../components/SkeletonCard'
+import SkeletonCard from '../components/SkeletonCard';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-
 import AllKnowledgeCards from '../components/AllKC';
 import { ToastContainer } from 'react-toastify';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import AppsIcon from '@mui/icons-material/Apps';
+import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
+import { ThumbsUpDownRounded } from '@mui/icons-material';
 
-const Suites = () =>
-     {
-      const [searchQuery, setSearchQuery] = useState("");
-      const [isLoading, setIsLoading] = useState(true);
-      const [kcData, setKcData] = useState([]);
-      const [showSkeletonCard] = useState(false);
+const Suites = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [kcData, setKcData] = useState([]);
+  const [showSkeletonCard] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [value, setValue] = useState(0);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  const { user } = useContext(AuthContext);
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-      const { user } = useContext(AuthContext);
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
 
-      const handleSearchChange = (event) => {
-        setSearchQuery(event.target.value);
-      };
+  // Fetch Public Knowledge Cards
+  const fetchPublicKnowledgeCards = useCallback(
+    async (pageNum = 1) => {
+      setIsLoading(true);
 
-       // Public KC
-        const fetchPublicKnowledgeCards = useCallback(() => {
-          setIsLoading(true);        
-          axios
-          .get(`${backendUrl}/knowledge-card/public`, {params:{user_id: user.userId}})
-          .then((response) => {
-            setKcData(response.data);
-          })
-          .catch((error) => {
-            console.error("Error fetching knowledge cards:", error);
-          })
-          .finally(()=> setIsLoading(false))
-      }, [backendUrl]);
-    
-      useEffect(() => {
-        fetchPublicKnowledgeCards();
-      }, [fetchPublicKnowledgeCards]);
+      if (!user || !user.userId) {
+        console.error('User data not available');
+        setIsLoading(false);
+        return;
+      }
 
-        // search filter
-  const filteredCards = kcData.filter((card) => {
-    const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
-    return queryWords.every((word) => 
-      card?.title?.toLowerCase().includes(word) ||
-      card?.category?.toLowerCase().includes(word) ||
-      card?.tags?.some((tag) =>
-        tag.toLowerCase().includes(word)) ||
-      card?.summary?.toLowerCase().includes(word)
-    );
-  }
+      try {
+        const response = await axios.get(`${backendUrl}/knowledge-card/public`, {
+          params: { user_id: user.userId, skip: (pageNum - 1) * 4, limit: 4 },
+        });
+
+        const newCards = response.data;
+        console.log('Fetched cards in public:', newCards);
+        if (pageNum === 1) {
+          setKcData(newCards);
+        } else {
+          setKcData((prev) => [...prev, ...newCards]);
+        }
+
+        if (newCards.length === 0) {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error('Error fetching knowledge cards:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [backendUrl, user]
   );
+
+  // Fetch Bookmarked Knowledge Cards
+  const fetchBookmarkedKnowledgeCards = useCallback(
+    async (pageNum = 1) => {
+      setIsLoading(true);
+      const userId = user.userId;
+      try {
+        const response = await axios.get(`${backendUrl}/knowledge-card/bookmarked`, {
+          params: { 
+                    user_id: userId, 
+                    skip: (pageNum - 1) * 4, 
+                    limit: 4 },
+        });
+        console.log('User ID:', userId); // Log the user ID for debugging
+        const newCards = response.data;
+        console.log('Fetched cards in bookmarked:', newCards);
+        if (pageNum === 1) {
+          setKcData(newCards);
+        } else {
+          setKcData((prev) => [...prev, ...newCards]);
+        }
+
+        if (newCards.length === 0) {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error('Error fetching bookmarked knowledge cards:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [backendUrl]
+  );
+
+  const handleTabChange = (event, newValue) => {
+    setValue(newValue);
+    setPage(1); // Reset pagination
+    setHasMore(true);
+    setKcData([]); // Clear previous data
+  };
+
+  useEffect(() => {
+    if (value === 0) {
+      fetchPublicKnowledgeCards(1);
+    } else if (value === 1) {
+      fetchBookmarkedKnowledgeCards(1);
+    }
+  }, [value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
+
+  useEffect(() => {
+    if (page === 1) return;
+
+    if (value === 0) {
+      fetchPublicKnowledgeCards(page);
+    } else if (value === 2) {
+      fetchBookmarkedKnowledgeCards(page);
+    }
+  }, [page, value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
+
+  const getFilteredCards = () => {
+    const baseData = kcData;
+
+    if (!searchQuery.trim()) return baseData;
+
+    const lowerQuery = searchQuery.toLowerCase();
+    const queryWords = lowerQuery.split(/\s+/);
+
+    return baseData.filter((card) => {
+      const combinedWords = [
+        ...(card?.title?.toLowerCase().split(/\s+/) || []),
+        ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+        ...(card?.tags?.map((tag) => tag.toLowerCase()) || []),
+      ];
+
+      return queryWords.some((qWord) => combinedWords.includes(qWord));
+    });
+  };
+
+  const filteredCards = getFilteredCards();
+
   return (
     <>
-      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
-      <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-15 gap-4">
+      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+      <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 lg:my-2 gap-4">
         <div className="w-full md:w-1/3 lg:hidden shadow-sm">
           <input
             type="text"
@@ -64,14 +156,26 @@ const Suites = () =>
             className="w-full border rounded border-gray-300 focus:outline-none focus:border-emerald-500 px-4 py-2 placeholder:text-emerald-800 placeholder:opacity-40 text-emerald-800"
           />
         </div>
-        </div>
-        {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
-          <p>Public Space</p>
-        </div> */}
-        <AllKnowledgeCards cardData={filteredCards} refreshCards={fetchPublicKnowledgeCards} isLoading={isLoading} showSkeletonCard={showSkeletonCard}/>
-      <ToastContainer position='bottom-right'/>
+      </div>
+      <div className="flex justify-center">
+        <Tabs value={value} onChange={handleTabChange} aria-label="icon tabs example" className="my-4 flex justify-center">
+          <Tab icon={<AppsIcon />} aria-label="All" />
+          <Tab icon={<BookmarkIcon />} aria-label="Bookmarked" />
+        </Tabs>
+      </div>
+
+      <AllKnowledgeCards
+        cardData={filteredCards}
+        refreshCards={value === 0 ? fetchPublicKnowledgeCards : fetchBookmarkedKnowledgeCards}
+        isLoading={isLoading}
+        showSkeletonCard={showSkeletonCard}
+        loadMore={() => setPage((prev) => prev + 1)}
+        hasMore={hasMore}
+      />
+
+      <ToastContainer position="bottom-right" />
     </>
   );
-}
+};
 
-export default Suites
+export default Suites;

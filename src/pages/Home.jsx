@@ -4,8 +4,9 @@ import Navbar from "../components/Navbar";
 import "../css/Home.css";
 import AllKnowledgeCards from "../components/AllKC";
 import AddKnowledgeCard from "../components/AddKnowledgeCard";
-import SkeletonCard from "../components/SkeletonCard";
+import UploadFileForCard from "../components/UploadFileForCard";
 import { ToastContainer } from "react-toastify";
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
@@ -55,6 +56,7 @@ const Home = () => {
     }
   }, [page, fetchKnowledgeCards]);
 
+  //search function on type setting value
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -137,12 +139,19 @@ const Home = () => {
   
     if (!searchQuery.trim()) return baseData;
   
-    return baseData.filter((card) =>
-      card?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card?.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const lowerQuery = searchQuery.toLowerCase();
+    const queryWords = lowerQuery.split(/\s+/);
+
+    return baseData.filter((card) => {
+      const combinedWords = [
+        ...(card?.title?.toLowerCase().split(/\s+/) || []),
+        ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+        ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
+      ];
+    
+      return queryWords.some(qWord => combinedWords.includes(qWord));
+    });
   };
   
   const filteredCards = getFilteredCards();
@@ -205,30 +214,41 @@ const Home = () => {
           />
         </div>
 
-        <div className="flex items-center gap-4 ml-auto">
-        <div className={`transition-all duration-200 ease-in-out transform ${
-          filter === 'Favourites' ? "scale-105" :
-          filter === 'Archived' ? "scale-105" :
-          "scale-105"
-        }`}>
+        <div className="flex flex-col md:flex-row items-center gap-4 ml-auto w-full md:w-auto">
+          <div className="relative w-full md:w-auto">
+            {/* Filter icon inside select */}
+            <FilterListIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-800 pointer-events-none" />
+            
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 rounded border border-gray-300 bg-white text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className=" w-full md:w-auto pl-10 pr-4 py-2 rounded border border-gray-300 bg-white text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <option value="All">All</option>
               <option value="Favourites">Favourites</option>
               <option value="Archived">Archived</option>
             </select>
-        </div>
-        <div className="justify-end w-full md:w-auto">
-          <AddKnowledgeCard 
-            onSave={(newCard) => {
-              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
-              setShowSkeletonCard(false);
-            }}
-          handleStartSaving={handleStartSaving} handleSaved={handleSaved}/>
-        </div>
+          </div>
+
+          <div className="w-full md:w-auto flex flex-wrap items-center justify-between lg: gap-x-4">
+            <AddKnowledgeCard 
+              onSave={(newCard) => {
+                setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+                setShowSkeletonCard(false);
+              }}
+              handleStartSaving={handleStartSaving}
+              handleSaved={handleSaved}
+            />
+
+            <UploadFileForCard
+              onSave={(newCard) => {
+                setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+                setShowSkeletonCard(false);
+              }}
+              handleStartSaving={handleStartSaving}
+              handleSaved={handleSaved}
+            />
+          </div>
         </div>
 
       </div>

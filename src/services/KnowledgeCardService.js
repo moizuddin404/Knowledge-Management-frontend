@@ -122,6 +122,80 @@ const handlePublic = async (cardData) => {
   }
 };
 
+const handleSharedCard = async (token) => {
+  try {
+    const res = await axios.get(`${backendUrl}/knowledge-card/shared/${token}`);
+    return res.data;
+  } catch (error) {
+    console.log("Operation failed", error);
+  }
+};
+
+const handleShareLink = async (cardData) => {
+  try {
+    const res = await axios.post(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/generate-share-link`,
+      {}, // Empty body
+      {
+        params: {
+          user_id: cardData.user_id, // Sent as a query parameter
+        },
+      }
+    );
+    console.log(res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error sharing link:", error);
+  }
+};
+
+const handleBookmark = async (cardData, userId) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/bookmark`,
+      null,
+      {
+        params: { user_id: userId },
+      }
+    );
+    console.log(cardData.card_id)
+    // console.log(userId)
+    return res;
+  } catch (err) {
+    console.error("Bookmark failed:", err);
+  }
+};
+
+const handleQuestionAnswers = async (cardData) => {
+  try {
+    const res = await axios.post(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/generate-qna`,
+      {},
+      {
+        params: {
+          user_id: cardData.user_id,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
+  }
+};
+
+const handleKnowledgeMap = async (cardData) => {
+  try {
+    const res = await axios.get(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/knowledge-map`,
+    );
+    console.log(res.data)
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching question answers:", error);
+  }
+};
+
+
 export default {
   handlefavourite,
   handleLike,
@@ -131,4 +205,9 @@ export default {
   handleEdit,
   handleCopy,
   handlePublic,
+  handleShareLink,
+  handleSharedCard,
+  handleBookmark,
+  handleQuestionAnswers,
+  handleKnowledgeMap,
 };
