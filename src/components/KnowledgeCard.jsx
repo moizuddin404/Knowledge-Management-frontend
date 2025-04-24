@@ -482,9 +482,9 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                     {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={''}>
                       Add Category
                     </button>)}
-                    <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
+                    {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
-                    </button>
+                    </button>}
                     {!isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); handleCopy(); }}>
                       Copy to Home
                     </button>)}

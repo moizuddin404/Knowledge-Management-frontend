@@ -11,6 +11,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import AppsIcon from '@mui/icons-material/Apps';
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import { ThumbsUpDownRounded } from '@mui/icons-material';
+import BackToTop from '../components/BackToTop';
 
 const Suites = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,8 +181,7 @@ const Suites = () => {
         loadMore={() => setPage((prev) => prev + 1)}
         hasMore={hasMore}
       />
-
-      <ToastContainer position="bottom-right" />
+      <BackToTop />
     </>
   );
 };
