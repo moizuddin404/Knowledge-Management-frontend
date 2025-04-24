@@ -4,7 +4,7 @@ import SkeletonCard from "./SkeletonCard";
 import { useRef, useCallback, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
-const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkeletonCard=false, loadMore, hasMore, removeCardFromUI }) => {
+const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkeletonCard=false, loadMore, hasMore, removeCardFromUI, currentTab }) => {
   const observer = useRef();
 
   const lastCardRef = useCallback(
@@ -59,7 +59,7 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkelet
             return (
               user &&(
               <div ref={isLast ? lastCardRef : null} key={card.card_id} className="h-auto">
-                <KnowledgeCard key={card.card_id} cardData={card} refreshCards={refreshCards} removeCardFromUI={removeCardFromUI}/>
+                <KnowledgeCard key={card.card_id} cardData={card} refreshCards={refreshCards} removeCardFromUI={removeCardFromUI} currentTab={currentTab}/>
               </div>)
               
             );

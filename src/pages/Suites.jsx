@@ -104,6 +104,10 @@ const Suites = () => {
     setKcData([]); // Clear previous data
   };
 
+  const handleRemoveCard = (cardId) => {
+    setKcData((prevCards) => prevCards.filter((card) => card._id !== cardId));
+  };
+
   useEffect(() => {
     if (value === 0) {
       fetchPublicKnowledgeCards(1);
@@ -180,6 +184,8 @@ const Suites = () => {
         showSkeletonCard={showSkeletonCard}
         loadMore={() => setPage((prev) => prev + 1)}
         hasMore={hasMore}
+        removeCardFromUI={handleRemoveCard}
+        currentTab={value}
       />
       <BackToTop />
     </>

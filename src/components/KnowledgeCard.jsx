@@ -22,7 +22,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -118,10 +118,19 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
   const onBookmarkClick = async (e) => {
     e.stopPropagation();
     const userId = user?.userId;
+  
     const response = await knowledgeCardApi.handleBookmark(cardData, userId);
+  
     if (response && response.status === 200) {
-      setIsBookmarked(prev => !prev);
+      const newStatus = !isBookmarked;
+      setIsBookmarked(newStatus);
+  
+      // Remove the card from UI if it's unbookmarked and we're in the Bookmarked tab
+      if (!newStatus && currentTab === 1 && removeCardFromUI) {
+        removeCardFromUI(cardData.card_id || cardData._id);
+      }
     }
+  
     console.log("Like response", response);
   };
 
