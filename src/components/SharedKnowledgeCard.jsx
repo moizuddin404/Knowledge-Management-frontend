@@ -30,7 +30,7 @@ const SharedKnowledgeCard = () => {
         setCategory(data.category || "No Category Yet...");
         setNoteContent(data.note || "No Note Yet...");
         setSummaryContent(data.summary || "No Summary Yet...");
-        setSourceUrl(data.source_url || "No Source URL Yet...");
+        setSourceUrl(data.source_url);
         setTags(data.tags || []);
       } catch (err) {
         setError("Failed to load shared card.");
@@ -61,15 +61,16 @@ const SharedKnowledgeCard = () => {
               <LaunchIcon />
             </IconButton>
           </Tooltip>
-        )}
+          )
+      }
       </div>
       {category && (
-    <div className="mt-6 mb-4">
-        <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm pb-1">
-        {category}
-        </span>
-    </div>
-    )}
+        <div className="mt-6 mb-4">
+            <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm pb-1">
+            {category}
+            </span>
+        </div>
+        )}
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
