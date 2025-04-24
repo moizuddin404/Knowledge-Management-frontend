@@ -68,9 +68,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
         onSave(response.data);
       }
 
-      toast.success("Card Added" , {
-        autoClose: 3000,
-      });
+      toast.success("Card Added");
       handleSaved();
 
       setLink("");
