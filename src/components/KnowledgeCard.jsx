@@ -309,14 +309,14 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
         {/* Content container */}
         <div className="flex flex-col items-start justify-end w-full px-5 py-2 space-y-1">
 
-               {/* Chip */}
+               {/* Category Chip */}
               {savedCategory && (
                 <Tooltip title="Category" arrow>
                   <div
                     className="absolute bottom-2 left-5 text-sm bg-gray-100 text-black rounded-md pt-0.5 px-2 cursor-pointer max-w-[160px] truncate"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsEditingCategory(true);
+                      setIsEditingCategory((prev) => !prev);
                     }}
                   >
                     {displayedCategory
@@ -327,8 +327,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                 </Tooltip>
               )}
 
-              {/* Editable Box */}
-              {isEditingCategory && (
+              {/* category Editable Box */}
+              {isOwner && isEditingCategory && (
                 <div className="absolute bottom-12 left-5 bg-white shadow-lg rounded-md p-3 z-50 w-64">
                   <input
                     type="text"
@@ -482,9 +482,9 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                     {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={''}>
                       Add Category
                     </button>)}
-                    <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
+                    {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
-                    </button>
+                    </button>}
                     {!isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); handleCopy(); }}>
                       Copy to Home
                     </button>)}
@@ -515,7 +515,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                     >
                       PDF
                     </button>
-                    <button
+                    {/* <button
                       className="block w-full px-4 py-2 hover:bg-emerald-200"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -524,7 +524,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                       }}
                     >
                       DOCX
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
@@ -629,13 +629,13 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
               )}
               {activeTab === 'Q&A' && (
                   <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
-                    <div className="flex flex-col gap-4">  
+                    <div className="flex flex-col gap-4 w-full">  
                     {qaContent.length === 0 && (
                         <button
-                          className={`px-4 py-2 rounded-md font-semibold ${
+                          className={`self-start px-2 py-2 rounded-md font-semibold ${
                             loading
                               ? 'bg-gray-400 text-white cursor-wait'
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-[#1f7281] text-white hover:bg-emerald-700'
                           }`}
                           onClick={handleGenerate}
                           disabled={loading}
@@ -711,7 +711,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI }) => {
                           className={`px-4 py-2 rounded-md font-semibold ${
                             loadingKm
                               ? 'bg-gray-400 text-white cursor-wait'
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-[#1f7281] text-white hover:bg-emerald-700'
                           }`}
                           onClick={handleGenerateMap}
                           disabled={loadingKm}

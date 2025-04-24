@@ -5,8 +5,8 @@ import "../css/Home.css";
 import AllKnowledgeCards from "../components/AllKC";
 import AddKnowledgeCard from "../components/AddKnowledgeCard";
 import UploadFileForCard from "../components/UploadFileForCard";
-import { ToastContainer } from "react-toastify";
 import FilterListIcon from '@mui/icons-material/FilterList';
+import BackToTop from "../components/BackToTop";
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
@@ -264,9 +264,7 @@ const Home = () => {
           hasMore={filter === "All" ? hasMore : filter === "Favourites"? hasMore : filter === "Archived"? hasMore : false}
           removeCardFromUI={handleRemoveCard}
         />
-        
-        {/* Toast Notification */}
-        <ToastContainer position="bottom-right"/>
+        <BackToTop />
         </>    
   );
 };

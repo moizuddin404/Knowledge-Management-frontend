@@ -150,8 +150,6 @@ const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
                     </div>
                 </div>
             )}
-
-            <ToastContainer />
         </>
     );
 };
