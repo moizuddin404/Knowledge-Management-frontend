@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import knowledgeCardApi from '../services/KnowledgeCardService';
 import ReactDOM from 'react-dom';
 

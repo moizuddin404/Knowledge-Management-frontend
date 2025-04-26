@@ -7,15 +7,14 @@ import { AuthProvider } from "./context/AuthProvider";
 import Suites from "./pages/Suites";
 import SharedKnowledgeCard from "./components/SharedKnowledgeCard";
 import SharedCard from "./pages/SharedCard";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from 'react-hot-toast';
 
 const App = () => {
   return (
     <AuthProvider>
     <Router>
       {/* Toast Notification */}
-      <ToastContainer position="bottom-right"/>
+      <Toaster position="top-center" reverseOrder={false}/>
       <Routes>
         <Route path="/" element={<Navigate to="/sign-in" />} />
         <Route path="/sign-in" element={<SignIn />}/>
