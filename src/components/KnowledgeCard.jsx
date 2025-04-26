@@ -14,7 +14,7 @@ import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import knowledgeCardApi from "../services/KnowledgeCardService";
 import MyEditor from "./RichTextEditor"
 import { AuthContext } from "../context/AuthContext";
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 import ShareDialog from "./ShareCardDialog";

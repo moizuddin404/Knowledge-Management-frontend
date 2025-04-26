@@ -6,7 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import knowledgeCardApi from '../services/KnowledgeCardService';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu }) {
   const [open, setOpen] = React.useState(false);
