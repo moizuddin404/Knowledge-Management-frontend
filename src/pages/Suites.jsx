@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import SkeletonCard from '../components/SkeletonCard';
 import axios from 'axios';
@@ -9,23 +9,39 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import AppsIcon from '@mui/icons-material/Apps';
-import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
-import { ThumbsUpDownRounded } from '@mui/icons-material';
 import BackToTop from '../components/BackToTop';
+import debounce from 'lodash.debounce';
 
 const Suites = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [kcData, setKcData] = useState([]);
-  const [showSkeletonCard] = useState(false);
+  const [showSkeletonCard, setShowSkeletonCard] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [value, setValue] = useState(0);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const { user } = useContext(AuthContext);
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  // Memoized debounced handler
+  const debouncedSetSearchQuery = useMemo(
+    () =>
+      debounce((value) => {
+        setSearchQuery(value);
+        setIsSearching(false);
+        setShowSkeletonCard(false);
+      }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    setIsSearching(true);
+    setShowSkeletonCard(true);
+    debouncedSetSearchQuery(value);
   };
 
   // Fetch Public Knowledge Cards
@@ -45,7 +61,6 @@ const Suites = () => {
         });
 
         const newCards = response.data;
-        console.log('Fetched cards in public:', newCards);
         if (pageNum === 1) {
           setKcData(newCards);
         } else {
@@ -71,14 +86,9 @@ const Suites = () => {
       const userId = user.userId;
       try {
         const response = await axios.get(`${backendUrl}/knowledge-card/bookmarked`, {
-          params: { 
-                    user_id: userId, 
-                    skip: (pageNum - 1) * 4, 
-                    limit: 4 },
+          params: { user_id: userId, skip: (pageNum - 1) * 4, limit: 4 },
         });
-        console.log('User ID:', userId); // Log the user ID for debugging
         const newCards = response.data;
-        console.log('Fetched cards in bookmarked:', newCards);
         if (pageNum === 1) {
           setKcData(newCards);
         } else {
@@ -121,7 +131,7 @@ const Suites = () => {
 
     if (value === 0) {
       fetchPublicKnowledgeCards(page);
-    } else if (value === 2) {
+    } else if (value === 1) {
       fetchBookmarkedKnowledgeCards(page);
     }
   }, [page, value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
@@ -137,7 +147,6 @@ const Suites = () => {
     return baseData.filter((card) => {
       const combinedWords = [
         ...(card?.title?.toLowerCase().split(/\s+/) || []),
-        ...(card?.category?.toLowerCase().split(/\s+/) || []),
         ...(card?.summary?.toLowerCase().split(/\s+/) || []),
         ...(card?.tags?.map((tag) => tag.toLowerCase()) || []),
       ];
@@ -146,34 +155,36 @@ const Suites = () => {
     });
   };
 
-  const filteredCards = getFilteredCards();
+  const filteredCards = useMemo(getFilteredCards, [searchQuery, kcData]);
 
   return (
     <>
-      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+      <Navbar searchQuery={inputValue} handleSearchChange={handleSearchChange} />
       <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 lg:my-2 gap-4">
         <div className="w-full md:w-1/3 lg:hidden shadow-sm">
           <input
             type="text"
             placeholder="Search Your Cards..."
-            value={searchQuery}
+            value={inputValue}
             onChange={handleSearchChange}
             className="w-full border rounded border-gray-300 focus:outline-none focus:border-emerald-500 px-4 py-2 placeholder:text-emerald-800 placeholder:opacity-40 text-emerald-800"
           />
         </div>
       </div>
       <div className="flex justify-center">
-        <Tabs value={value} onChange={handleTabChange} 
-          aria-label="icon tabs example" 
+        <Tabs
+          value={value}
+          onChange={handleTabChange}
+          aria-label="icon tabs example"
           className="my-4 flex justify-center"
           slotProps={{
             indicator: {
-              className: 'bg-emerald-400'
-            }
+              className: 'bg-emerald-400',
+            },
           }}
-          >
-          <Tab icon={<AppsIcon className="text-emerald-500"/>} aria-label="All"  />
-          <Tab icon={<BookmarkIcon className="text-emerald-500"/>} aria-label="Bookmarked" />
+        >
+          <Tab icon={<AppsIcon className="text-emerald-500" />} aria-label="All" />
+          <Tab icon={<BookmarkIcon className="text-emerald-500" />} aria-label="Bookmarked" />
         </Tabs>
       </div>
 

@@ -1,26 +1,31 @@
-import React, { act, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "../css/KnowledgeCard.css";
-import { IconButton, Tooltip } from "@mui/material";
+import { CircularProgress, IconButton, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import PublicIcon from '@mui/icons-material/Public';
 import PublicOffIcon from '@mui/icons-material/PublicOff';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CancelIcon from "@mui/icons-material/Cancel";
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
+import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded';
 import knowledgeCardApi from "../services/KnowledgeCardService";
 import MyEditor from "./RichTextEditor"
 import { AuthContext } from "../context/AuthContext";
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 import ShareDialog from "./ShareCardDialog";
+import CopyLinkDialog from "./CopyLinkDialog";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import NoUrlModal from "./NoUrlModal";
 
 const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -45,6 +50,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [savedCategory, setSavedCategory] = useState(cardData?.category || "");
   const [displayedCategory, setDisplayedCategory] = useState(cardData?.category || "");
 
+  const [downloading, setDownloading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [kmContent, setKmContent] = useState(cardData.knowledge_map || []);
   const [loadingKm, setLoadingKm] = useState(false);
@@ -88,7 +95,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     if (cardData.source_url) {
       window.open(cardData.source_url, "_blank", "noopener,noreferrer");
     } else {
-      alert("No source URL available.");
+      setOpenModal(true);
     }
   };
 
@@ -283,161 +290,182 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   return (
     <>
       <div
-        className="relative flex flex-col items-center h-auto min-h-[17rem] max-w-[25rem] shadow-sm shadow-gray-400 cursor-pointer transition-transform transform hover:scale-105 rounded-md bg-white overflow-hidden"
-        onClick={toggleExpand}
-      >
-        <div className="flex flex-col items-start justify-end w-[80%] mt-2 ml-5 self-start">
-
-          {/* Thumbnail */}
-          <div className="flex">
-            <div
-              className="w-10 h-10 border bg-cover bg-center rounded-full mt-2 flex justify-center items-center text-xl"
-              style={{
-                background: cardData.thumbnail?.startsWith('http')
-                  ? `url(${cardData.thumbnail})`
-                  : '#fff',
-                border: '1px solid #e1e1e1',
-              }}
-            >
-              {!cardData.thumbnail?.startsWith('http') && cardData.thumbnail}
+          className="relative flex flex-col items-center shadow-sm shadow-gray-400 cursor-pointer transition-transform transform hover:scale-105 rounded-md bg-white overflow-hidden"
+          onClick={toggleExpand}
+        >
+          {/* Content Top Section */}
+          <div className="flex flex-col items-start mt-2 mx-5 mr-4">
+          <div className="flex items-center justify-between w-full">
+            {/* Thumbnail */}
+            <div className="flex">
+              <div
+                className="w-13 h-13 border bg-cover bg-center rounded-full flex justify-center items-center text-xl"
+                style={{
+                  background: cardData.thumbnail?.startsWith('http')
+                    ? `url(${cardData.thumbnail})`
+                    : '#fff',
+                  border: '1px solid #e1e1e1',
+                }}
+              >
+                {!cardData.thumbnail?.startsWith('http') && cardData.thumbnail}
+              </div>
             </div>
-          </div>
 
-          {/* Title */}
-          <div className="border-b border-gray-200 font-black text-md text-emerald-950 leading-snug mt-3 min-h-[3.5rem]">
-            {cardData.title}
-          </div>
+          {/* top right icons  */}
+          <div className="flex">
+            {/* Go to source */}
+            <div className="flex flex-col items-end">
+            <Tooltip title="Go to Source" arrow>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGoToSource();
+                      }}
+                    >
+                      <OpenInNewRoundedIcon style={{ color: 'black' }} />
+                    </IconButton>
+                  </Tooltip>            
+            </div>
+            <NoUrlModal open={openModal} handleClose={() => setOpenModal(false)} />
 
-          {/* Summary */}
-          <div className=" text-gray-500 text-sm mt-2 min-h-[2.5rem] max-h-[3rem]">
-            {stripHtml(cardData?.summary.slice(0, 155) + "...")}
+
+            {/* More menu */}
+            { isOwner && (
+            <div className="flex flex-col items-end">
+            <Tooltip title="Card Menu" arrow>
+                <IconButton
+                   onClick={(e) => {
+                   e.stopPropagation();
+                   toggleKcMenu();
+                   }}
+                   >
+                  <MoreVertIcon style={{ color: 'black' }} />
+                </IconButton>
+            </Tooltip>
+            <div
+                    className={`absolute top-13 right-6 bg-[#f1f1f1] text-black shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${
+                      isKcMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <button
+                      className="block w-full px-4 py-2 hover:bg-emerald-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onArchiveClick();
+                        toggleKcMenu();
+                      }}
+                    >
+                      {cardData.archive ? "Unarchive" :   <span><MoveToInboxRoundedIcon fontSize="small" className="mr-1"/>Archive</span>}
+                    </button>
+
+                    {/* Delete Dialog */}
+                    <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu} />
+                  </div>                          
+          </div>
+          )}
           </div>
         </div>
 
+            {/* Title */}
+            <div className="border-b border-gray-200 font-black text-md text-emerald-950 leading-snug mt-3 min-h-[4rem]">
+              {cardData.title}
+            </div>
 
-        {/* Content container */}
-        <div className="flex flex-col items-start justify-end w-full px-5 py-2 space-y-1">
+            {/* Summary */}
+            <div className="text-gray-500 text-sm mt-2 min-h-[6rem] max-h-[3rem]">
+              {stripHtml(cardData?.summary.slice(0, 140) + "...")}
+            </div>
+          </div>
 
-               {/* Category Chip */}
-              {savedCategory && (
-                <Tooltip title="Category" arrow>
-                  <div
-                    className="absolute bottom-2 left-5 text-sm bg-gray-100 text-black rounded-md pt-0.5 px-2 cursor-pointer max-w-[160px] truncate"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsEditingCategory((prev) => !prev);
-                    }}
-                  >
-                    {displayedCategory
-                      .split(" ")
-                      .slice(0, 2)
-                      .join(" ")}
-                  </div>
-                </Tooltip>
-              )}
-
-              {/* category Editable Box */}
-              {isOwner && isEditingCategory && (
-                <div className="absolute bottom-12 left-5 bg-white shadow-lg rounded-md p-3 z-50 w-64">
-                  <input
-                    type="text"
-                    className="text-black border border-gray-300 rounded-md px-2 py-1 w-full"
-                    value={categoryInput}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => setCategoryInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") { saveCategory(); setIsEditingCategory(false); }
-                    }}
-                    onBlur={saveCategory}
-                    autoFocus
-                  />
-                  <div className="mt-2 text-sm text-gray-600">
-                    Current: <span className="font-semibold">{displayedCategory}</span>
-                  </div>
+          {/* Footer Section */}
+          <div className="flex justify-between items-center w-full px-3 mt-2">
+            {/* Left Icons */}
+            <div className="flex space-x-2">
+              {/* Like Button */}
+              {cardData?.public && (
+                <div className="z-10 flex items-center">
+                  <Tooltip title={likes > 1 ? `${likes} Likes` : likes === 1 ? `1 Like` : `No Likes`} arrow>
+                    <IconButton onClick={onLikeClick}>
+                      {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
+                    </IconButton>
+                  </Tooltip>
+                  <span className="text-sm text-gray-500">{likes > 0 ? likes : null}</span>
                 </div>
               )}
-        </div>
-        {/* Date
-        <div className="absolute bottom-2 text-gray-500 text-sm flex justify-center items-center ml-8">{formattedDate}</div> */}
 
-        {/* Icons */}
+              {/* Favourite Button */}
+              {user?.userId === cardData?.user_id && (
+                <div className="z-10">
+                  <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onFavouriteClick(cardData);
+                      }}
+                    >
+                      {isfavourite ? <Favorite className="text-red-500" /> : <FavoriteBorder className="text-black" />}
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              )}
 
-        {/* Favourite Button */}
-        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id &&
-          <div className="absolute top-3.5 right-8 z-10">
-            <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
-              <IconButton onClick={(e) => {
-                e.stopPropagation();
-                onFavouriteClick(cardData)
-              }}>
-                {isfavourite ? <Favorite className="text-red-500" /> : <FavoriteBorder />}
-              </IconButton>
-            </Tooltip>
-          </div>
-              }
-
-        {/* Bookmark Button */}
-        {
-          cardData?.public && user?.userId !== cardData.user_id && (
-            <div className="absolute top-3.5 right-3 z-10">
-              <Tooltip title={isBookmarked ? "Remove Bookmark" : "Add Bookmark"} arrow>
-                <IconButton onClick={onBookmarkClick}>
-                  {isBookmarked ? <BookmarkIcon className="text-emerald-400" /> : <BookmarkBorderIcon />}
-                </IconButton>
-              </Tooltip>
-            </div>
-          )
-        }
-
-
-        {/* Card Menu Button */}
-        {user && user.userId && cardData?.user_id && user.userId === cardData.user_id &&
-
-          (<div className="absolute top-3.5 right-0 z-10">
-            <Tooltip title="Card menu" arrow>
-              <IconButton onClick={(e) => {
-                e.stopPropagation();
-                toggleKcMenu();
-              }}>
-                <MoreVertIcon style={{ color: 'black' }} />
-              </IconButton>
-            </Tooltip>
-          </div>)
-        }
-        <div className={`absolute right-2 top-12 bg-[#f1f1f1] text-black shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isKcMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
-          <button
-            className="block w-full px-4 py-2 hover:bg-emerald-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              onArchiveClick();
-              toggleKcMenu();
-            }}
-          >
-            {cardData.archive ? "Unarchive" : "Archive"}
-          </button>
-          <DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu} />
-          {/* add s=button for share */}
-          <ShareDialog cardData={cardData} toggleKcMenu={toggleKcMenu} />
-        </div>
-
-        {/* Like Button */}
-        {
-          cardData?.public ?
-            (
-              <div className="absolute bottom-0 right-3 z-10">
-                <Tooltip title={likes > 1
-                  ? `${likes} Likes`
-                  : likes === 1
-                    ? `${likes} Like` : `No likes`} arrow>
-                  <IconButton onClick={onLikeClick}>
-                    {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
+              {/* Download Button */}
+              <div className="z-10">
+                <Tooltip title="Download as PDF" arrow>
+                  <IconButton
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      setDownloading(true);
+                      try {
+                        await onExportClick(cardData, 'pdf');
+                      } finally {
+                        setDownloading(false);
+                      }
+                    }}
+                  >
+                    {/* Fixed width and height container */}
+                    <div className="w-6 h-6 flex items-center justify-center">
+                      {downloading ? (
+                        <CircularProgress size={24} sx={{ color: '#10b981' }} />
+                      ) : (
+                        <DownloadRoundedIcon className="text-black" />
+                      )}
+                    </div>
                   </IconButton>
                 </Tooltip>
               </div>
+          </div>
 
-            ) : null
-        }
-      </div>
+            {/* Right Icons */}
+            <div className="flex space-x-2">
+              {/* Copy Link Icon */}
+              <div >
+                <Tooltip title="Copy Link" arrow>
+                  <CopyLinkDialog cardData={cardData} />
+                </Tooltip>
+              </div>
+
+              {/* Bookmark Button */}
+              
+               { !isOwner && ( <div className="z-10">
+                  <Tooltip title={isBookmarked ? "Remove Bookmark" : "Add Bookmark"} arrow>
+                    <IconButton onClick={onBookmarkClick}>
+                      {isBookmarked ? <BookmarkIcon className="text-emerald-400" /> : <BookmarkBorderIcon className="text-black" />}
+                    </IconButton>
+                  </Tooltip>
+                </div>)}
+            
+            </div>
+          </div>
+
+          {/* (Optional) Date */}
+          {/* 
+          <div className="absolute bottom-2 text-gray-500 text-sm flex justify-center items-center ml-8">
+            {formattedDate}
+          </div> 
+          */}
+        </div>
+
 
 
       {isExpanded && (

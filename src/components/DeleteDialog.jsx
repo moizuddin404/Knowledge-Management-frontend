@@ -6,7 +6,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import knowledgeCardApi from '../services/KnowledgeCardService';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
 export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu }) {
   const [open, setOpen] = React.useState(false);
@@ -48,7 +49,7 @@ export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu 
         toggleKcMenu();
     }}
        >
-        Delete
+       <DeleteRoundedIcon fontSize='small' className='mr-2'/> Delete
       </Button>
       <Dialog
         open={open}
