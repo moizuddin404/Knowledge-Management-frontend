@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import knowledgeCardApi from '../services/KnowledgeCardService';
 import ReactDOM from 'react-dom';
+import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
+import { IconButton } from '@mui/material';
 
-function ShareDialog({ cardData, toggleKcMenu }) {
+function CopyLinkDialog({ cardData }) {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState('');
@@ -11,8 +13,6 @@ function ShareDialog({ cardData, toggleKcMenu }) {
   // Function to open the share dialog
   const openShareDialog = (e) => {
     e.stopPropagation();
-    // Close the more menu
-    toggleKcMenu();
     // Show modal
     setShowModal(true);
     // Fetch the share link
@@ -125,12 +125,10 @@ function ShareDialog({ cardData, toggleKcMenu }) {
   return (
     <>
       {/* Share button */}
-      <button
-        className="flex justify-center w-full px-4 py-2 text-left hover:bg-emerald-200"
-        onClick={openShareDialog}
+      <IconButton
       >
-        Share
-      </button>
+        <LinkRoundedIcon onClick={openShareDialog} className='rotate-135' style={{color:"black"}}/>
+      </IconButton>
       
       {/* Modal rendered using portal */}
       <Modal />
@@ -138,4 +136,4 @@ function ShareDialog({ cardData, toggleKcMenu }) {
   );
 }
 
-export default ShareDialog;
+export default CopyLinkDialog;

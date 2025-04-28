@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "../css/Home.css";
@@ -7,11 +7,14 @@ import AddKnowledgeCard from "../components/AddKnowledgeCard";
 import UploadFileForCard from "../components/UploadFileForCard";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import BackToTop from "../components/BackToTop";
+import debounce from 'lodash.debounce';
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [filter, setFilter] = useState("All");
   const [showSkeletonCard, setShowSkeletonCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,9 +59,21 @@ const Home = () => {
     }
   }, [page, fetchKnowledgeCards]);
 
-  //search function on type setting value
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+    // Memoized debounced handler
+    const debouncedSetSearchQuery = useMemo(() =>
+      debounce((value) => {
+        setSearchQuery(value); 
+        setIsSearching(false); 
+        setShowSkeletonCard(false); 
+      }, 500), []); 
+
+  
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);         
+    setIsSearching(true);         
+    setShowSkeletonCard(true);    
+    debouncedSetSearchQuery(value); 
   };
 
   // Favourite KC
@@ -134,27 +149,26 @@ const Home = () => {
     }
   }, [filter, fetchKnowledgeCards, fetchFavouriteKnowledgeCards, fetchArchivedCards]);
 
-  const getFilteredCards = () => {
+  
+  const filteredCards = useMemo(() => {
     const baseData = filter === "All" ? allFetchedCards : kcData;
   
     if (!searchQuery.trim()) return baseData;
   
     const lowerQuery = searchQuery.toLowerCase();
     const queryWords = lowerQuery.split(/\s+/);
-
+  
     return baseData.filter((card) => {
       const combinedWords = [
         ...(card?.title?.toLowerCase().split(/\s+/) || []),
-        ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        // ...(card?.category?.toLowerCase().split(/\s+/) || []),
         ...(card?.summary?.toLowerCase().split(/\s+/) || []),
         ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
       ];
-    
+  
       return queryWords.some(qWord => combinedWords.includes(qWord));
     });
-  };
-  
-  const filteredCards = getFilteredCards();
+  }, [searchQuery, filter, allFetchedCards, kcData]);
 
   const handleStartSaving = () => {
     setShowSkeletonCard(true);
@@ -201,14 +215,14 @@ const Home = () => {
 
   return ( 
   <>
-      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
+      <Navbar searchQuery={inputValue} handleSearchChange={handleSearchChange}/>
 
       <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 gap-4">
         <div className="w-full md:w-1/3 lg:hidden shadow-sm">
           <input
             type="text"
             placeholder="Search Your Cards..."
-            value={searchQuery}
+            value={inputValue}
             onChange={handleSearchChange}
             className="w-full border rounded border-gray-300 focus:outline-none focus:border-emerald-500 px-4 py-2 placeholder:text-emerald-800 placeholder:opacity-40 text-emerald-800"
           />
