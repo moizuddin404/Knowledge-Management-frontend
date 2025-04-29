@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useRef } from "react";
 import "../css/KnowledgeCard.css";
 import { CircularProgress, IconButton, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -36,12 +37,15 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [noteContent, setNoteContent] = useState(cardData.note || 'No Note Yet...');
   const [summaryContent, setSummaryContent] = useState(cardData.summary || 'No Summary Yet...');
+  const [tags, setTags] = useState(cardData.tags || []);
   const [loadingQa, setLoadingQa] = useState(false);
   const [qaContent, setQaContent] = useState(cardData.qna || []);
   const [showGenerateButton, setShowGenerateButton] = useState(true);
   const [visibleAnswers, setVisibleAnswers] = useState([]);
   const [isfavourite, setIsfavourite] = useState(cardData.favourite || false);
   const [isAddTagOpen, setIsAddTagOpen] = useState(false);
+  const [newTag, setNewTag] = useState("");
+  // const [currentTag, setCurrentTag] = useState("AAA");
   const [isPublic, setIsPublic] = useState(cardData?.public)
   const [isLiked, setIsLiked] = useState(cardData?.liked_by_me);
   const [likes, setLikes] = useState(cardData.likes);
@@ -229,9 +233,51 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     return tmp.textContent || tmp.innerText || "";
   };
 
+  const tagInputRef = useRef(null);
+
   const openAddTag = () => {
-    setIsAddTagOpen(!isAddTagOpen);
-  }
+    setIsAddTagOpen(true);
+    setTimeout(() => {
+      tagInputRef.current?.focus();
+    }, 0);
+  };
+
+  const handleAddTag = async () => {
+    const userId = user?.userId;
+    try {
+      const response = await knowledgeCardApi.handleAddTag(cardData, newTag, userId);
+      console.log("Add Tag Response", response.tags);
+      if (response.status_code === 200) {
+        
+        toast.success(response.message || "Tag added successfully!");
+        setTags((prevTags) => [...prevTags, newTag]);
+        setNewTag("");
+        setIsAddTagOpen(false);
+  
+      } else if (response.status_code === 400) {
+        
+        toast.error(response.message || "Tag already exists!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add tag");
+    }
+  };
+  
+  const handleRemoveTag = async (tagToRemove) => {
+    const userId = user?.userId;
+    try {
+      const response = await knowledgeCardApi.handleRemoveTag(cardData, tagToRemove, userId);
+  
+      if (response.status_code === 200) {
+        toast.success(response.message || "Tag removed successfully!");
+        setTags((prevTags) => prevTags.filter((tag) => tag !== tagToRemove));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove tag");
+    }
+  };  
 
   const saveCategory = async () => {
     if (!categoryInput.trim()) return;
@@ -647,18 +693,54 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
                       <hr />
                       <p className="mt-3 font-medium">Tags</p>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        <button className=" border bg-emerald-400 rounded-xl px-3 hover:bg-white text-white hover:text-emerald-400 hover:border border-emerald-800 text-xs" onClick={openAddTag}>Add Tag +</button>
-                        {cardData.tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-gray-300 rounded-full text-xs"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {isAddTagOpen &&
-                          <input type="text" />
-                        }
+                      <button
+                          className="border bg-emerald-400 rounded-xl px-3 hover:bg-white text-white hover:text-emerald-400 hover:border border-emerald-800 text-xs"
+                          onClick={openAddTag}
+                        >
+                          Add Tag +
+                        </button>
+                        {isAddTagOpen && (
+                              <>
+                                <input
+                                  ref={tagInputRef}
+                                  type="text"
+                                  value={newTag}
+                                  onChange={(e) => setNewTag(e.target.value)}
+                                  onKeyDown={async (e) => {
+                                    if (e.key === "Enter" && newTag.trim() !== "") {
+                                      e.preventDefault();
+                                      await handleAddTag();
+                                    }
+                                  }}
+                                  className="border px-2 py-1 text-xs rounded"
+                                  placeholder="Enter tag"
+                                />
+                                <button
+                                  onClick={() => {
+                                    setNewTag("");
+                                    setIsAddTagOpen(false);
+                                  }}
+                                  className="text-xs text-red-500 border border-red-500 rounded px-2 ml-1 hover:bg-red-100"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            )}
+                          {tags.map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="flex items-center gap-1 px-3 py-1 bg-gray-300 rounded-full text-xs"
+                              >
+                                {tag}
+                                <button
+                                  onClick={() => handleRemoveTag(tag)}
+                                  className="ml-1 text-red-500 hover:text-red-700"
+                                  title="Remove tag"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
                       </div>
                     </>
                   )}

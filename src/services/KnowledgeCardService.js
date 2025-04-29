@@ -195,6 +195,42 @@ const handleKnowledgeMap = async (cardData) => {
   }
 };
 
+const handleAddTag = async (cardData, tag, userId) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/add-tag`,
+      { tag }, 
+      {
+        params: {
+          user_id: userId, 
+        }
+      }
+    );
+    
+    return res.data;
+  } catch (error) {
+    console.error("Error adding tag:", error);
+    throw error; 
+  }
+};
+
+const handleRemoveTag = async (cardData, tag, userId) => {
+  try {
+    const res = await axios.delete(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/remove-tag`, 
+      {
+        data: { tag },
+        params: {
+          user_id: userId, 
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error removing tag:", error);
+    throw error; 
+  }
+};
 
 export default {
   handlefavourite,
@@ -210,4 +246,6 @@ export default {
   handleBookmark,
   handleQuestionAnswers,
   handleKnowledgeMap,
+  handleAddTag,
+  handleRemoveTag
 };
