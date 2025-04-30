@@ -305,10 +305,11 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const saveCategories = async (newCategories) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     try {
+      console.log("Saving categories:", newCategories);
       const response = await axios.put(
         `${backendUrl}/knowledge-card/${cardData.card_id}/update-category`,
         {
-          category: JSON.stringify(newCategories), // 👈 send array as string
+          categories: newCategories, // array 
         },
         {
           headers: {
