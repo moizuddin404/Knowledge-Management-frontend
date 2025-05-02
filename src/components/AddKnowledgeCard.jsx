@@ -96,7 +96,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
     <>
       <div>
         <button
-          className="w-24 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition"
+          className="w-24 h-10 bg-[#1f7281] text-white rounded hover:bg-emerald-800 transition"
           onClick={() => setIsOpen(!isOpen)}
         >
           Add Card

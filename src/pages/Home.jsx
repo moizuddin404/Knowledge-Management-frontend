@@ -8,6 +8,7 @@ import UploadFileForCard from "../components/UploadFileForCard";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import BackToTop from "../components/BackToTop";
 import debounce from 'lodash.debounce';
+import knowledgeCardApi from "../services/KnowledgeCardService";
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
@@ -23,6 +24,7 @@ const Home = () => {
   const [archivedPage, setArchivedPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [allFetchedCards, setAllFetchedCards] = useState([]);
+  const [userId, setUserId] = useState(null);
 
   
   // Function to fetch knowledge cards
@@ -161,7 +163,7 @@ const Home = () => {
     return baseData.filter((card) => {
       const combinedWords = [
         ...(card?.title?.toLowerCase().split(/\s+/) || []),
-        // ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        ...(card?.category?.map(tag => tag.toLowerCase()) || []),
         ...(card?.summary?.toLowerCase().split(/\s+/) || []),
         ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
       ];
@@ -212,6 +214,22 @@ const Home = () => {
         fetchArchivedCards(archivedPage);
       }
     }, [archivedPage, fetchArchivedCards, filter]);
+
+//useEffect for userId
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const userId = await knowledgeCardApi.getUserId(token);
+          setUserId(userId);
+        } catch (error) {
+          console.error("Error fetching user ID:", error);
+        }
+      }
+    };
+    fetchUserId();
+  }, []);
 
   return ( 
   <>
@@ -273,10 +291,12 @@ const Home = () => {
           cardData={filteredCards}
           refreshCards={fetchKnowledgeCards}
           isLoading={isLoading}
+          isSearching={isSearching}
           showSkeletonCard={showSkeletonCard}
           loadMore={filter === "All" ? () => setPage((prev) => prev + 1) : filter === "Favourites"? ()=> setFavPage((prev) => prev + 1) : filter === "Archived"? ()=> setArchivedPage((prev) => prev + 1) :null}
           hasMore={filter === "All" ? hasMore : filter === "Favourites"? hasMore : filter === "Archived"? hasMore : false}
           removeCardFromUI={handleRemoveCard}
+          userId={userId}
         />
         <BackToTop />
         </>    

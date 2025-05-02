@@ -11,6 +11,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import AppsIcon from '@mui/icons-material/Apps';
 import BackToTop from '../components/BackToTop';
 import debounce from 'lodash.debounce';
+import knowledgeCardApi from '../services/KnowledgeCardService';
 
 const Suites = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +25,7 @@ const Suites = () => {
   const [value, setValue] = useState(0);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const { user } = useContext(AuthContext);
+  const [userId, setUserId] = useState(null);
 
   // Memoized debounced handler
   const debouncedSetSearchQuery = useMemo(
@@ -49,15 +51,15 @@ const Suites = () => {
     async (pageNum = 1) => {
       setIsLoading(true);
 
-      if (!user || !user.userId) {
-        console.error('User data not available');
-        setIsLoading(false);
-        return;
-      }
+      // if (!user || !user.userId) {
+      //   console.error('User data not available');
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       try {
         const response = await axios.get(`${backendUrl}/knowledge-card/public`, {
-          params: { user_id: user.userId, skip: (pageNum - 1) * 4, limit: 4 },
+          params: { user_id: userId, skip: (pageNum - 1) * 4, limit: 4 },
         });
 
         const newCards = response.data;
@@ -76,7 +78,7 @@ const Suites = () => {
         setIsLoading(false);
       }
     },
-    [backendUrl, user]
+    [backendUrl, userId]
   );
 
   // Fetch Bookmarked Knowledge Cards
@@ -119,6 +121,8 @@ const Suites = () => {
   };
 
   useEffect(() => {
+    if (!userId) return;
+    
     if (value === 0) {
       fetchPublicKnowledgeCards(1);
     } else if (value === 1) {
@@ -148,6 +152,7 @@ const Suites = () => {
       const combinedWords = [
         ...(card?.title?.toLowerCase().split(/\s+/) || []),
         ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+        ...(card?.category?.map(tag => tag.toLowerCase()) || []),
         ...(card?.tags?.map((tag) => tag.toLowerCase()) || []),
       ];
 
@@ -156,6 +161,22 @@ const Suites = () => {
   };
 
   const filteredCards = useMemo(getFilteredCards, [searchQuery, kcData]);
+
+  //useEffect for userId
+    useEffect(() => {
+      const fetchUserId = async () => {
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const userId = await knowledgeCardApi.getUserId(token);
+            setUserId(userId);
+          } catch (error) {
+            console.error("Error fetching user ID:", error);
+          }
+        }
+      };
+      fetchUserId();
+    }, []);
 
   return (
     <>
@@ -192,11 +213,13 @@ const Suites = () => {
         cardData={filteredCards}
         refreshCards={value === 0 ? fetchPublicKnowledgeCards : fetchBookmarkedKnowledgeCards}
         isLoading={isLoading}
+        isSearching={isSearching}
         showSkeletonCard={showSkeletonCard}
         loadMore={() => setPage((prev) => prev + 1)}
         hasMore={hasMore}
         removeCardFromUI={handleRemoveCard}
         currentTab={value}
+        userId={userId}
       />
       <BackToTop />
     </>

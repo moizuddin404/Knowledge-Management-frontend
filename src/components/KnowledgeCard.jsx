@@ -23,12 +23,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 import ShareDialog from "./ShareCardDialog";
 import CopyLinkDialog from "./CopyLinkDialog";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import NoUrlModal from "./NoUrlModal";
 import axios from "axios";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,7 +65,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [showGenerateMapButton, setShowGenerateMapButton] = useState(true);
 
   const { user } = useContext(AuthContext);
-  const isOwner = user?.userId === cardData.user_id;
+  const isOwner = userId === cardData.user_id;
   const [isBookmarked, setIsBookmarked] = useState(cardData?.bookmarked_by?.includes((user?.userId)));
   const handleTabChange = (tab) => {
     if (!isEditing) {
@@ -152,7 +152,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
 
   // Handle the click event for the "Copy card to home" button
   const handleCopy = async () => {
-    const userId = user?.userId;
     const response = await knowledgeCardApi.handleCopy(cardData, userId);
     if (response.status === 200) {
       toast.success("Card Copied to Home");
@@ -328,6 +327,17 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     }
   };
 
+  const deleteCategory = async (cardId, category) => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      await axios.post(`${backendUrl}/knowledge-card/${cardId}/remove-category`, {
+        categories: [category],
+      });
+    } catch (err) {
+      console.error("Error removing category", err);
+    }
+  };
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -430,19 +440,34 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
             </div>
 
             {/* Category Chips */}
+            {(!categories || categories.length === 0) && isOwner && (
+              <div
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+                onClick={handleCategoryChipClick}
+              >
+                + Add Category
+              </div>
+            )}
             {categories?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {categories.slice(0, 3).map((cat, index) => {
+                  const catStr = String(cat); // Force string
                   const shouldTruncate =
-                    !(categories.length === 1 && cat.length < 25) && cat.length > 9;
-                  const displayText = shouldTruncate ? `${cat.slice(0, 9)}...` : cat;
+                    !(categories.length === 1 && catStr.length < 25) && catStr.length > 9;
+                  const displayText = shouldTruncate ? `${catStr.slice(0, 9)}...` : catStr;
 
-                  return ( // ✅ this was missing
+                  return (
                     <div
                       key={index}
                       className="text-xs bg-emerald-100 text-emerald-900 px-2 py-1 rounded-full cursor-pointer"
-                      onClick={handleCategoryChipClick}
-                      title={cat}
+                      onClick={(e)=> {
+                        if (!isOwner) {
+                          e.stopPropagation();
+                          return;
+                        };
+                        handleCategoryChipClick(e)}
+                      }
+                      title={catStr}
                     >
                       {displayText}
                     </div>
@@ -491,7 +516,15 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
                   freeSolo
                   options={allCategories}
                   value={editingCategories}
-                  onChange={(event, newValue) => setEditingCategories(newValue)}
+                  onChange={async (event, newValue, reason) => {
+                    const removed = editingCategories.filter(cat => !newValue.includes(cat));
+                    
+                    for (const cat of removed) {
+                      await deleteCategory(cardData.card_id, cat); // ⬅️ use your actual cardId here
+                    }
+                  
+                    setEditingCategories(newValue);
+                  }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
@@ -519,7 +552,17 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
                     />
                   )}
                 />
-                <div className="flex justify-end mt-2">
+                <div className="flex justify-end mt-2 gap-2">
+                  <Button
+                    size="small"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      setCategoryEditorOpen(false);
+                    }}
+                    className="!bg-red-500 !text-white hover:!bg-red-600"
+                  >
+                    Cancel
+                  </Button>
                   <Button
                     size="small"
                     onClick={async (e) => {
@@ -527,7 +570,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
                       await saveCategories(editingCategories);
                       setCategoryEditorOpen(false);
                     }}
-                    className="!bg-emerald-500 !text-white hover:!bg-emerald-600"
+                    className="!bg-[#1f7281] !text-white hover:!bg-emerald-800"
                   >
                     Done
                   </Button>
@@ -559,7 +602,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
               )}
 
               {/* Favourite Button */}
-              {user?.userId === cardData?.user_id && (
+              {isOwner && (
                 <div className="z-10">
                   <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
                     <IconButton
