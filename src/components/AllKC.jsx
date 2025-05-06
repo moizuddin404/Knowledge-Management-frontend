@@ -3,6 +3,7 @@ import KnowledgeCard from "./KnowledgeCard";
 import SkeletonCard from "./SkeletonCard";
 import { useRef, useCallback, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import SavingSkeletonCard from "./SavingSkeletonCard";
 
 const AllKnowledgeCards = ({
   cardData,
@@ -78,7 +79,7 @@ const AllKnowledgeCards = ({
   return (
     <div className="px-8 md:px-12 mt-8">
       <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-      {showSkeletonCard && <SkeletonCard />}
+      {showSkeletonCard && <SavingSkeletonCard />}
         {/* Render actual cards after search */}
         {cardData.map((card, index) => {
           const isLast = index === cardData.length - 1;
