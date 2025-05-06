@@ -66,10 +66,10 @@ export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu 
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={(e)=>{e.stopPropagation();handleClose();}}>
+          <Button onClick={(e)=>{e.stopPropagation();handleClose();}} className="!bg-red-500 !text-white hover:!bg-red-700">
             No
             </Button>
-          <Button onClick={(e)=>{e.stopPropagation();handleDeleteClick();}} autoFocus>Yes
+          <Button onClick={(e)=>{e.stopPropagation();handleDeleteClick();}} autoFocus className="!bg-[#1f7281] !text-white hover:!bg-emerald-800">Yes
           </Button>
            
         </DialogActions>

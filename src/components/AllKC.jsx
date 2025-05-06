@@ -3,16 +3,19 @@ import KnowledgeCard from "./KnowledgeCard";
 import SkeletonCard from "./SkeletonCard";
 import { useRef, useCallback, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import SavingSkeletonCard from "./SavingSkeletonCard";
 
 const AllKnowledgeCards = ({
   cardData,
   refreshCards,
   isLoading = false,
+  isSearching = false,
   showSkeletonCard = false,  // Show skeletons if true
   loadMore,
   hasMore,
   removeCardFromUI,
-  currentTab
+  currentTab,
+  userId
 }) => {
   const observer = useRef();
 
@@ -37,7 +40,20 @@ const AllKnowledgeCards = ({
   const { user } = useContext(AuthContext);
 
   // Show skeletons if we are still searching
-  if (showSkeletonCard) {
+  if (isLoading && (!cardData || cardData.length === 0)) {
+    return (
+      <div className="px-8 md:px-12 mt-8">
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  if (isSearching) {
     return (
       <div className="px-8 md:px-12 mt-8">
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
@@ -63,6 +79,7 @@ const AllKnowledgeCards = ({
   return (
     <div className="px-8 md:px-12 mt-8">
       <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      {showSkeletonCard && <SavingSkeletonCard />}
         {/* Render actual cards after search */}
         {cardData.map((card, index) => {
           const isLast = index === cardData.length - 1;
@@ -74,6 +91,7 @@ const AllKnowledgeCards = ({
                   refreshCards={refreshCards}
                   removeCardFromUI={removeCardFromUI}
                   currentTab={currentTab}
+                  userId={userId}
                 />
               </div>
             )

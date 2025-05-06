@@ -37,7 +37,7 @@ function NoUrlModal({ open, handleClose }) {
         </p>
         <button
           onClick={handleClose}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-800 text-white rounded transition"
+          className="px-4 py-2 bg-[#1f7281] hover:bg-emerald-800 text-white rounded transition"
         >
           Close
         </button>

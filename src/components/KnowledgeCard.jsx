@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useRef } from "react";
 import "../css/KnowledgeCard.css";
-import { CircularProgress, IconButton, Tooltip } from "@mui/material";
+import { Autocomplete, Button, CircularProgress, IconButton, Popper, TextField, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
@@ -23,12 +23,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import DeleteDialog from "./DeleteDialog";
 import ShareDialog from "./ShareCardDialog";
 import CopyLinkDialog from "./CopyLinkDialog";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import NoUrlModal from "./NoUrlModal";
+import axios from "axios";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,7 +38,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [noteContent, setNoteContent] = useState(cardData.note || 'No Note Yet...');
   const [summaryContent, setSummaryContent] = useState(cardData.summary || 'No Summary Yet...');
   const [tags, setTags] = useState(cardData.tags || []);
-  const [loadingQa, setLoadingQa] = useState(false);
   const [qaContent, setQaContent] = useState(cardData.qna || []);
   const [showGenerateButton, setShowGenerateButton] = useState(true);
   const [visibleAnswers, setVisibleAnswers] = useState([]);
@@ -49,10 +48,14 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [isPublic, setIsPublic] = useState(cardData?.public)
   const [isLiked, setIsLiked] = useState(cardData?.liked_by_me);
   const [likes, setLikes] = useState(cardData.likes);
-  const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [categoryInput, setCategoryInput] = useState(cardData?.category || "");
-  const [savedCategory, setSavedCategory] = useState(cardData?.category || "");
-  const [displayedCategory, setDisplayedCategory] = useState(cardData?.category || "");
+
+  // category states 
+  const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [editingCategories, setEditingCategories] = useState(cardData.category || []);
+  const [allCategories, setAllCategories] = useState(["AI", "Design", "Productivity", "React", "Web Development", "UX"]);
+  const [categories, setCategories] = useState(cardData.category || []);
+
 
   const [downloading, setDownloading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -62,7 +65,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
   const [showGenerateMapButton, setShowGenerateMapButton] = useState(true);
 
   const { user } = useContext(AuthContext);
-  const isOwner = user?.userId === cardData.user_id;
+  const isOwner = userId === cardData.user_id;
   const [isBookmarked, setIsBookmarked] = useState(cardData?.bookmarked_by?.includes((user?.userId)));
   const handleTabChange = (tab) => {
     if (!isEditing) {
@@ -88,11 +91,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
 
     console.log("Public Response", response)
   }
-
-  // const handleAddTag = () => {
-  //   alert('Add Tag functionality to be implemented');
-  //   setIsMenuOpen(false);
-  // };
 
   const handleGoToSource = () => {
     setIsMenuOpen(false);
@@ -152,8 +150,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     removeCardFromUI(cardData.card_id);
   };
 
+  // Handle the click event for the "Copy card to home" button
   const handleCopy = async () => {
-    const userId = user?.userId;
     const response = await knowledgeCardApi.handleCopy(cardData, userId);
     if (response.status === 200) {
       toast.success("Card Copied to Home");
@@ -163,6 +161,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     console.log("Like response", response);
   }
 
+
+  // Handle the click event for the "Download" button
   const onExportClick = async (cardData, fileFormat) => {
     try {
       const response = await knowledgeCardApi.handleDownload(cardData, fileFormat);
@@ -183,18 +183,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     }
   };
 
-  // const onDeleteClick = async (cardData) => {
-  //   try {
-
-  //     const response = await knowledgeCardApi.handleDelete(cardData);
-  //     toast.success("Card Deleted");
-  //     console.log(response);
-  //     refreshCards();
-  //   } catch (error) {
-  //     console.error ("Delete error", error)
-  //   }
-  // }
-
+  // Handle the click event for the "Save" button in edit mode
   const onEditSaveClick = async (cardData, summaryContent, noteContent) => {
     try {
       handleEditToggle();
@@ -206,7 +195,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
 
   }
 
-
+// expanding knowledge card
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
     // Reset states when closing
@@ -235,6 +224,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
 
   const tagInputRef = useRef(null);
 
+  // Opening Add tag input box
   const openAddTag = () => {
     setIsAddTagOpen(true);
     setTimeout(() => {
@@ -242,6 +232,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     }, 0);
   };
 
+
+  // Add tag in Knowledge card
   const handleAddTag = async () => {
     const userId = user?.userId;
     try {
@@ -264,6 +256,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     }
   };
   
+  // Remove tag functionality
   const handleRemoveTag = async (tagToRemove) => {
     const userId = user?.userId;
     try {
@@ -279,34 +272,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     }
   };  
 
-  const saveCategory = async () => {
-    if (!categoryInput.trim()) return;
-  
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await axios.put(`${backendUrl}/knowledge-card/${cardData.card_id}/update-category`, {
-        category: categoryInput.trim(),
-      });
-  
-      if (response.status === 200) {
-        const updatedCategory = response.data;
-  
-        // Set trimmed category in a local state for display in the chip
-        setDisplayedCategory(updatedCategory); // new local state
-        setIsEditingCategory(false);
-        console.log("Category updated successfully:", updatedCategory);
-      }
-    } catch (error) {
-      console.error("Error updating category:", error);
-    }
-  };
 
-  useEffect(() => {
-    setCategoryInput(cardData?.category || "");
-    setSavedCategory(cardData?.category || "");
-  }, [cardData]);
-
-
+  // generating questions and answers
   const handleGenerate = async () => {
     setLoading(true);
     const generatedQA = await knowledgeCardApi.handleQuestionAnswers(cardData);
@@ -315,6 +282,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     setShowGenerateButton(false);
   };
 
+  // generating knowledge map
   const handleGenerateMap = async () => {
     setLoadingKm(true);
     const generatedKm = await knowledgeCardApi.handleKnowledgeMap(cardData);
@@ -325,14 +293,68 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
     setShowGenerateMapButton(false);
   };
 
-  const handleGenerateClick = async () => {
-    setLoading(true); 
-    const generatedQA = await knowledgeCardApi.handleQuestionAnswers(cardData);
-    setQaContent(generatedQA);
-    handleTabChange('Q&A');
-    setLoading(false); 
+  const handleCategoryChipClick = (event) => {
+    event.stopPropagation();
+    setEditingCategories(categories); // sync current state
+    setAnchorEl(event.currentTarget);
+    setCategoryEditorOpen((prev) => !prev);
   };
 
+
+  const saveCategories = async (newCategories) => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    try {
+      console.log("Saving categories:", newCategories);
+      const response = await axios.put(
+        `${backendUrl}/knowledge-card/${cardData.card_id}/update-category`,
+        {
+          categories: newCategories, // array 
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      console.log('Updated categories:', response.data);
+      toast.success("Categories updated!");
+      setCategories(newCategories);
+      setCategoryEditorOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update categories.");
+    }
+  };
+
+  const deleteCategory = async (cardId, category) => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      await axios.post(`${backendUrl}/knowledge-card/${cardId}/remove-category`, {
+        categories: [category],
+      });
+    } catch (err) {
+      console.error("Error removing category", err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+        const categoryNames = response.data.categories.map(cat => cat.name);
+        setAllCategories(categoryNames);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      }
+    };
+  
+    fetchCategories();
+  }, []);
+
+
+  // ===================== Actual component rendering ========================================
   return (
     <>
       <div
@@ -413,12 +435,152 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
         </div>
 
             {/* Title */}
-            <div className="border-b border-gray-200 font-black text-md text-emerald-950 leading-snug mt-3 min-h-[4rem]">
+            <div className="font-black text-md text-emerald-950 leading-snug mt-3 min-h-[3rem]">
               {cardData.title}
             </div>
 
+            {/* Category Chips */}
+            {(!categories || categories.length === 0) && isOwner && (
+              <div
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+                onClick={handleCategoryChipClick}
+              >
+                + Add Category
+              </div>
+            )}
+            {categories?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {categories.slice(0, 3).map((cat, index) => {
+                  const catStr = String(cat); // Force string
+                  const shouldTruncate =
+                    !(categories.length === 1 && catStr.length < 25) && catStr.length > 9;
+                  const displayText = shouldTruncate ? `${catStr.slice(0, 9)}...` : catStr;
+
+                  return (
+                    <div
+                      key={index}
+                      className="text-xs bg-emerald-100 text-emerald-900 px-2 py-1 rounded-full cursor-pointer"
+                      onClick={(e)=> {
+                        if (!isOwner) {
+                          e.stopPropagation();
+                          return;
+                        };
+                        handleCategoryChipClick(e)}
+                      }
+                      title={catStr}
+                    >
+                      {displayText}
+                    </div>
+                  );
+                })}
+                {categories.length > 3 && (
+                  <div
+                    className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full"
+                    onClick={handleCategoryChipClick}
+                  >
+                    +{categories.length - 3}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {categoryEditorOpen && (
+              <div
+                className="fixed inset-0 bg-transparent z-[1048]"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+
+            {/* category Popper */}
+            <Popper
+              open={categoryEditorOpen}
+              anchorEl={anchorEl}
+              placement="top-start"
+              modifiers={[
+                {
+                  name: 'zIndex',
+                  enabled: true,
+                  phase: 'write',
+                  fn({ state }) {
+                    state.styles.popper.zIndex = 9999;
+                  },
+                },
+              ]}
+            >
+              <div
+                className="bg-white shadow-md p-4 rounded-md w-64 z-50 border border-gray-200"
+                onClick={(e) => e.stopPropagation()} 
+              >
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={allCategories}
+                  value={editingCategories}
+                  onChange={async (event, newValue, reason) => {
+                    const removed = editingCategories.filter(cat => !newValue.includes(cat));
+                    
+                    for (const cat of removed) {
+                      await deleteCategory(cardData.card_id, cat); // ⬅️ use your actual cardId here
+                    }
+                  
+                    setEditingCategories(newValue);
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                    },
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label="Edit Categories"
+                      size="small"
+                      onClick={(e) => e.stopPropagation()}
+                      inputProps={{
+                        ...params.inputProps,
+                        maxLength: 16,
+                      }}
+                    />
+                  )}
+                />
+                <div className="flex justify-end mt-2 gap-2">
+                  <Button
+                    size="small"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      setCategoryEditorOpen(false);
+                    }}
+                    className="!bg-red-500 !text-white hover:!bg-red-600"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await saveCategories(editingCategories);
+                      setCategoryEditorOpen(false);
+                    }}
+                    className="!bg-[#1f7281] !text-white hover:!bg-emerald-800"
+                  >
+                    Done
+                  </Button>
+                </div>
+              </div>
+            </Popper>
+
+
             {/* Summary */}
-            <div className="text-gray-500 text-sm mt-2 min-h-[6rem] max-h-[3rem]">
+            <div className="border-t border-gray-200 pt-1 text-gray-500 text-sm mt-2 min-h-[6rem] max-h-[3rem]">
               {stripHtml(cardData?.summary.slice(0, 140) + "...")}
             </div>
           </div>
@@ -440,7 +602,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
               )}
 
               {/* Favourite Button */}
-              {user?.userId === cardData?.user_id && (
+              {isOwner && (
                 <div className="z-10">
                   <Tooltip title={isfavourite ? "Remove from favourites" : "Add to favourites"} arrow>
                     <IconButton
@@ -487,7 +649,9 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab }) => {
               {/* Copy Link Icon */}
               <div >
                 <Tooltip title="Copy Link" arrow>
+                  <span>
                   <CopyLinkDialog cardData={cardData} />
+                  </span>
                 </Tooltip>
               </div>
 
