@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "../css/Home.css";
@@ -7,11 +7,16 @@ import AddKnowledgeCard from "../components/AddKnowledgeCard";
 import UploadFileForCard from "../components/UploadFileForCard";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import BackToTop from "../components/BackToTop";
+import debounce from 'lodash.debounce';
+import knowledgeCardApi from "../services/KnowledgeCardService";
+import Select from 'react-select';
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [filter, setFilter] = useState("All");
   const [showSkeletonCard, setShowSkeletonCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,6 +25,9 @@ const Home = () => {
   const [archivedPage, setArchivedPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [allFetchedCards, setAllFetchedCards] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   
   // Function to fetch knowledge cards
@@ -56,9 +64,21 @@ const Home = () => {
     }
   }, [page, fetchKnowledgeCards]);
 
-  //search function on type setting value
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+    // Memoized debounced handler
+    const debouncedSetSearchQuery = useMemo(() =>
+      debounce((value) => {
+        setSearchQuery(value); 
+        setIsSearching(false); 
+        setShowSkeletonCard(false); 
+      }, 500), []); 
+
+  
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);         
+    setIsSearching(true);         
+    setShowSkeletonCard(true);    
+    debouncedSetSearchQuery(value); 
   };
 
   // Favourite KC
@@ -134,27 +154,39 @@ const Home = () => {
     }
   }, [filter, fetchKnowledgeCards, fetchFavouriteKnowledgeCards, fetchArchivedCards]);
 
-  const getFilteredCards = () => {
-    const baseData = filter === "All" ? allFetchedCards : kcData;
   
-    if (!searchQuery.trim()) return baseData;
-  
-    const lowerQuery = searchQuery.toLowerCase();
-    const queryWords = lowerQuery.split(/\s+/);
+  const selectedCategoryNames = selectedCategories.map((c) => c.value);
 
-    return baseData.filter((card) => {
-      const combinedWords = [
+const filteredCards = useMemo(() => {
+  const baseData = filter === "All" ? allFetchedCards : kcData;
+
+  if (!searchQuery.trim() && selectedCategoryNames.length === 0) return baseData;
+
+  const lowerQuery = searchQuery.toLowerCase();
+  const queryWords = lowerQuery.split(/\s+/);
+
+  return baseData.filter((card) => {
+    const cardCategories = card?.category?.map((tag) => tag.toLowerCase()) || [];
+
+    const matchesSearch = queryWords.some((qWord) =>
+      [
         ...(card?.title?.toLowerCase().split(/\s+/) || []),
-        ...(card?.category?.toLowerCase().split(/\s+/) || []),
+        ...cardCategories,
         ...(card?.summary?.toLowerCase().split(/\s+/) || []),
-        ...(card?.tags?.map(tag => tag.toLowerCase()) || [])
-      ];
-    
-      return queryWords.some(qWord => combinedWords.includes(qWord));
-    });
-  };
+        ...(card?.tags?.map((tag) => tag.toLowerCase()) || [])
+      ].includes(qWord)
+    );
+
+    const matchesCategory =
+      selectedCategoryNames.length === 0 ||
+      selectedCategoryNames.some((cat) =>
+        cardCategories.includes(cat.toLowerCase())
+      );
+
+    return matchesSearch && matchesCategory;
+  });
+}, [searchQuery, filter, allFetchedCards, kcData, selectedCategoryNames]);
   
-  const filteredCards = getFilteredCards();
 
   const handleStartSaving = () => {
     setShowSkeletonCard(true);
@@ -199,30 +231,79 @@ const Home = () => {
       }
     }, [archivedPage, fetchArchivedCards, filter]);
 
+//useEffect for userId
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const userId = await knowledgeCardApi.getUserId(token);
+          setUserId(userId);
+        } catch (error) {
+          console.error("Error fetching user ID:", error);
+        }
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+        setCategories(response.data.categories || []);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+  
+    fetchCategories();
+  }, [backendUrl]);
+
+  const categoryOptions = categories.map((c) => ({
+    value: c.name,
+    label: c.name
+  }));
+
   return ( 
   <>
-      <Navbar searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
+      <Navbar searchQuery={inputValue} handleSearchChange={handleSearchChange}/>
 
-      <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 gap-4">
-        <div className="w-full md:w-1/3 lg:hidden shadow-sm">
-          <input
-            type="text"
-            placeholder="Search Your Cards..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full border rounded border-gray-300 focus:outline-none focus:border-emerald-500 px-4 py-2 placeholder:text-emerald-800 placeholder:opacity-40 text-emerald-800"
-          />
-        </div>
+      <div className="flex flex-col gap-6 px-4 sm:px-8 md:px-12 py-8">
+      {/* Mobile Search Input */}
+      <div className="block md:hidden w-full">
+        <input
+          type="text"
+          placeholder="Search Your Cards..."
+          value={inputValue}
+          onChange={handleSearchChange}
+          className="w-full border rounded border-gray-300 focus:outline-none focus:border-emerald-500 px-4 py-2 placeholder:text-emerald-800 placeholder:opacity-40 text-emerald-800 shadow-sm"
+        />
+      </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-4 ml-auto w-full md:w-auto">
-          <div className="relative w-full md:w-auto">
-            {/* Filter icon inside select */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 w-full">
+        {/* Filter Selects */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+          {/* Filter by Type */}
+          <div className="relative w-full sm:w-52">
+            {/* Filter icon on the left */}
             <FilterListIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-800 pointer-events-none" />
-            
+
+            {/* Custom down arrow on the right */}
+            <svg
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className=" w-full md:w-auto pl-10 pr-4 py-2 rounded border border-gray-300 bg-white text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="appearance-none w-full pl-10 pr-8 py-2 rounded border border-gray-300 bg-white text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <option value="All">All</option>
               <option value="Favourites">Favourites</option>
@@ -230,28 +311,87 @@ const Home = () => {
             </select>
           </div>
 
-          <div className="w-full md:w-auto flex flex-wrap items-center justify-between lg: gap-x-4">
-            <AddKnowledgeCard 
-              onSave={(newCard) => {
-                setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
-                setShowSkeletonCard(false);
+          {/* Category Select */}
+          <div className="w-full sm:w-64">
+            <Select
+              isMulti
+              options={categoryOptions}
+              value={selectedCategories}
+              onChange={(selected) => setSelectedCategories(selected)}
+              closeMenuOnSelect={false}
+              className="w-full"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '36px',
+                  height: '36px',
+                  width: '100%',
+                  fontSize: '0.875rem',
+                  padding: '0 8px',
+                  borderColor: state.isFocused ? '#10B981' : '#ccc', // emerald-500
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.4)' : 'none', // Emerald ring
+                  '&:hover': {
+                    borderColor: '#10B981',
+                  },
+                  overflow: 'auto',
+                  scrollbarWidth: 'none',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#d1fae5',
+                  color: '#065f46',
+                  margin: '2px',
+                }),
+                multiValueContainer: (base) => ({
+                  ...base,
+                  display: 'flex',
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto',
+                  maxHeight: '36px',
+                  padding: '0',
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  scrollbarColor: '#10B981 #fff',
+                }),
+                option: (base) => ({
+                  ...base,
+                  color: 'black',
+                  backgroundColor: 'white',
+                  '&:hover': {
+                    backgroundColor: '#d1fae5',
+                    color: '#065f46',
+                  },
+                }),
               }}
-              handleStartSaving={handleStartSaving}
-              handleSaved={handleSaved}
-            />
-
-            <UploadFileForCard
-              onSave={(newCard) => {
-                setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
-                setShowSkeletonCard(false);
-              }}
-              handleStartSaving={handleStartSaving}
-              handleSaved={handleSaved}
+              placeholder="Filter by category"
             />
           </div>
         </div>
 
+        {/* Add/Upload Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+          <AddKnowledgeCard
+            onSave={(newCard) => {
+              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+              setShowSkeletonCard(false);
+            }}
+            handleStartSaving={handleStartSaving}
+            handleSaved={handleSaved}
+          />
+          <UploadFileForCard
+            onSave={(newCard) => {
+              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+              setShowSkeletonCard(false);
+            }}
+            handleStartSaving={handleStartSaving}
+            handleSaved={handleSaved}
+          />
+        </div>
       </div>
+    </div>
       {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
           <p>Home</p>
         </div> */}
@@ -259,10 +399,12 @@ const Home = () => {
           cardData={filteredCards}
           refreshCards={fetchKnowledgeCards}
           isLoading={isLoading}
+          isSearching={isSearching}
           showSkeletonCard={showSkeletonCard}
           loadMore={filter === "All" ? () => setPage((prev) => prev + 1) : filter === "Favourites"? ()=> setFavPage((prev) => prev + 1) : filter === "Archived"? ()=> setArchivedPage((prev) => prev + 1) :null}
           hasMore={filter === "All" ? hasMore : filter === "Favourites"? hasMore : filter === "Archived"? hasMore : false}
           removeCardFromUI={handleRemoveCard}
+          userId={userId}
         />
         <BackToTop />
         </>    

@@ -3,8 +3,20 @@ import KnowledgeCard from "./KnowledgeCard";
 import SkeletonCard from "./SkeletonCard";
 import { useRef, useCallback, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import SavingSkeletonCard from "./SavingSkeletonCard";
 
-const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkeletonCard=false, loadMore, hasMore, removeCardFromUI, currentTab }) => {
+const AllKnowledgeCards = ({
+  cardData,
+  refreshCards,
+  isLoading = false,
+  isSearching = false,
+  showSkeletonCard = false,  // Show skeletons if true
+  loadMore,
+  hasMore,
+  removeCardFromUI,
+  currentTab,
+  userId
+}) => {
   const observer = useRef();
 
   const lastCardRef = useCallback(
@@ -27,10 +39,11 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkelet
 
   const { user } = useContext(AuthContext);
 
+  // Show skeletons if we are still searching
   if (isLoading && (!cardData || cardData.length === 0)) {
     return (
       <div className="px-8 md:px-12 mt-8">
-        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
@@ -40,6 +53,20 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkelet
     );
   }
 
+  if (isSearching) {
+    return (
+      <div className="px-8 md:px-12 mt-8">
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  // If no cards and not loading, show empty state
   if (!isLoading && (!cardData || cardData.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center w-full py-20 text-center">
@@ -51,20 +78,28 @@ const AllKnowledgeCards = ({ cardData, refreshCards, isLoading=false, showSkelet
 
   return (
     <div className="px-8 md:px-12 mt-8">
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-        {showSkeletonCard && <SkeletonCard />}
-        {cardData
-          .map((card, index) => {
-            const isLast = index === cardData.length - 1;
-            return (
-              user &&(
+      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      {showSkeletonCard && <SavingSkeletonCard />}
+        {/* Render actual cards after search */}
+        {cardData.map((card, index) => {
+          const isLast = index === cardData.length - 1;
+          return (
+            user && (
               <div ref={isLast ? lastCardRef : null} key={card.card_id} className="h-auto">
-                <KnowledgeCard key={card.card_id} cardData={card} refreshCards={refreshCards} removeCardFromUI={removeCardFromUI} currentTab={currentTab}/>
-              </div>)
-              
-            );
-          })}
-          {isLoading && hasMore && !showSkeletonCard && <><SkeletonCard /></>}
+                <KnowledgeCard
+                  cardData={card}
+                  refreshCards={refreshCards}
+                  removeCardFromUI={removeCardFromUI}
+                  currentTab={currentTab}
+                  userId={userId}
+                />
+              </div>
+            )
+          );
+        })}
+
+        {/* Show skeleton card while loading more cards */}
+        {isLoading && hasMore && !showSkeletonCard && <SkeletonCard />}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -158,7 +159,7 @@ const handleBookmark = async (cardData, userId) => {
         params: { user_id: userId },
       }
     );
-    console.log(cardData.card_id)
+    console.log(cardData.card_id);
     // console.log(userId)
     return res;
   } catch (err) {
@@ -186,15 +187,60 @@ const handleQuestionAnswers = async (cardData) => {
 const handleKnowledgeMap = async (cardData) => {
   try {
     const res = await axios.get(
-      `${backendUrl}/knowledge-card/${cardData.card_id}/knowledge-map`,
+      `${backendUrl}/knowledge-card/${cardData.card_id}/knowledge-map`
     );
-    console.log(res.data)
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching question answers:", error);
   }
 };
 
+const handleAddTag = async (cardData, tag, userId) => {
+  try {
+    const res = await axios.put(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/add-tag`,
+      { tag },
+      {
+        params: {
+          user_id: userId,
+        },
+      }
+    );
+
+    return res.data;
+  } catch (error) {
+    console.error("Error adding tag:", error);
+    throw error;
+  }
+};
+
+const handleRemoveTag = async (cardData, tag, userId) => {
+  try {
+    const res = await axios.delete(
+      `${backendUrl}/knowledge-card/${cardData.card_id}/remove-tag`,
+      {
+        data: { tag },
+        params: {
+          user_id: userId,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error removing tag:", error);
+    throw error;
+  }
+};
+
+const getUserId = async (token) => {
+  try {
+    const decode = jwtDecode(token);
+    return decode.userId;
+  } catch (error) {
+    console.error("Error fetching user ID:", error);
+  }
+};
 
 export default {
   handlefavourite,
@@ -210,4 +256,7 @@ export default {
   handleBookmark,
   handleQuestionAnswers,
   handleKnowledgeMap,
+  handleAddTag,
+  handleRemoveTag,
+  getUserId,
 };
