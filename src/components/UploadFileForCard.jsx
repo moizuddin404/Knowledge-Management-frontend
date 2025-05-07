@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import CancelIcon from "@mui/icons-material/Cancel";
-import { IconButton } from '@mui/material';
-import UploadFileIcon from '@mui/icons-material/UploadFile'; 
+import { Button, IconButton } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import 'react-toastify/dist/ReactToastify.css';
 
 const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
@@ -61,12 +62,23 @@ const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
 
     return (
         <>
-            <button
-                className="w-auto h-10 px-2 bg-[#1f7281] text-white rounded hover:bg-emerald-800 transition"
+            <Button
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
                 onClick={() => setIsOpen(true)}
-            >
+                sx={{
+                    backgroundColor: '#1f7281',
+                    '&:hover': {
+                    backgroundColor: '#065f46', // emerald-800
+                    },
+                    textTransform: 'none',
+                    height: 40,
+                    px: 2,
+                    color: 'white',
+                }}
+                >
                 Upload File
-            </button>
+                </Button>
 
             {isOpen && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black/60 flex items-center justify-center z-[999] px-4">

@@ -64,7 +64,7 @@ const Home = () => {
     }
   }, [page, fetchKnowledgeCards]);
 
-    // Memoized debounced handler
+    //  debounced handler
     const debouncedSetSearchQuery = useMemo(() =>
       debounce((value) => {
         setSearchQuery(value); 
@@ -282,6 +282,27 @@ const filteredCards = useMemo(() => {
       </div>
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 w-full">
+
+         {/* Add/Upload Buttons */}
+         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+          <AddKnowledgeCard
+            onSave={(newCard) => {
+              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+              setShowSkeletonCard(false);
+            }}
+            handleStartSaving={handleStartSaving}
+            handleSaved={handleSaved}
+          />
+          <UploadFileForCard
+            onSave={(newCard) => {
+              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
+              setShowSkeletonCard(false);
+            }}
+            handleStartSaving={handleStartSaving}
+            handleSaved={handleSaved}
+          />
+        </div>
+
         {/* Filter Selects */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
           {/* Filter by Type */}
@@ -323,8 +344,8 @@ const filteredCards = useMemo(() => {
               styles={{
                 control: (base, state) => ({
                   ...base,
-                  minHeight: '36px',
-                  height: '36px',
+                  minHeight: '41px',
+                  height: '41px',
                   width: '100%',
                   fontSize: '0.875rem',
                   padding: '0 8px',
@@ -371,25 +392,6 @@ const filteredCards = useMemo(() => {
           </div>
         </div>
 
-        {/* Add/Upload Buttons */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
-          <AddKnowledgeCard
-            onSave={(newCard) => {
-              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
-              setShowSkeletonCard(false);
-            }}
-            handleStartSaving={handleStartSaving}
-            handleSaved={handleSaved}
-          />
-          <UploadFileForCard
-            onSave={(newCard) => {
-              setAllFetchedCards((prevCards) => [newCard, ...prevCards]);
-              setShowSkeletonCard(false);
-            }}
-            handleStartSaving={handleStartSaving}
-            handleSaved={handleSaved}
-          />
-        </div>
       </div>
     </div>
       {/* <div className='flex justify-end mx-12 lg:pt-6 text-emerald-700 lg:text-3xl'>
