@@ -1,0 +1,19 @@
+/* App.css */
+.scrollable-chat::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollable-chat::-webkit-scrollbar-thumb {
+    background-color: #10b981; /* emerald-500 */
+    border-radius: 4px;
+  }
+  
+  .scrollable-chat::-webkit-scrollbar-track {
+    background-color: #e5e7eb; /* gray-200 */
+  }
+  
+  .scrollable-chat {
+    scrollbar-width: thin;
+    scrollbar-color: #10b981 #e5e7eb;
+  }
+  

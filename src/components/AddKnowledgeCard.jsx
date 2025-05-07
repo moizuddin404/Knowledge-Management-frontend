@@ -4,7 +4,8 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CancelIcon from "@mui/icons-material/Cancel";
-import { IconButton } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
+import AddIcon from "@mui/icons-material/Add";
 
 import {
   EditorState,
@@ -95,12 +96,22 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
   return (
     <>
       
-        <button
-          className="w-auto h-10 px-2 bg-[#1f7281] text-white rounded hover:bg-emerald-800 transition"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          Add Card
-        </button>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => setIsOpen(!isOpen)}
+        sx={{
+          backgroundColor: '#1f7281',
+          '&:hover': {
+            backgroundColor: '#065f46', // emerald-800
+          },
+          textTransform: 'none',
+          height: 40,
+          px: 2,
+        }}
+      >
+        Add Card
+      </Button>
   
       {isOpen && (
         <div
