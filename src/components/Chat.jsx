@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import axios from "axios";
 import "../css/scrollbar.css";
@@ -8,6 +8,7 @@ const Chatbot = ({ cardId }) => {
   const [input, setInput] = useState("");
 
   const storageKey = `chatbot-messages-${cardId}`;
+  const messagesEndRef = useRef(null);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -21,6 +22,10 @@ const Chatbot = ({ cardId }) => {
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(messages));
   }, [messages, storageKey]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -64,6 +69,7 @@ const Chatbot = ({ cardId }) => {
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="flex items-center gap-2 mt-4">
