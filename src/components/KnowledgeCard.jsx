@@ -3,7 +3,7 @@ import { useRef } from "react";
 import "../css/KnowledgeCard.css";
 import { Autocomplete, Button, CircularProgress, IconButton, Popper, TextField, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Favorite, FavoriteBorder } from "@mui/icons-material";
+import { Close, Favorite, FavoriteBorder } from "@mui/icons-material";
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import PublicIcon from '@mui/icons-material/Public';
@@ -27,8 +27,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import NoUrlModal from "./NoUrlModal";
 import axios from "axios";
+import Chatbot from "./Chat";
+import "../css/scrollbar.css";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,6 +65,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   const [kmContent, setKmContent] = useState(cardData.knowledge_map || []);
   const [loadingKm, setLoadingKm] = useState(false);
   const [showGenerateMapButton, setShowGenerateMapButton] = useState(true);
+
+  const [showChat, setShowChat] = useState(false);
 
   const { user } = useContext(AuthContext);
   const isOwner = userId === cardData.user_id;
@@ -319,6 +323,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   
       console.log('Updated categories:', response.data);
       toast.success("Categories updated!");
+      handleNewCategoryAdded();
       setCategories(newCategories);
       setCategoryEditorOpen(false);
     } catch (error) {
@@ -352,6 +357,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   
     fetchCategories();
   }, []);
+ 
 
 
   // ===================== Actual component rendering ========================================
@@ -439,15 +445,26 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
               {cardData.title}
             </div>
 
+            <div className="flex flex-wrap gap-2 mt-2">
             {/* Category Chips */}
             {(!categories || categories.length === 0) && isOwner && (
               <div
-                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 mt-1.5 rounded-full cursor-pointer hover:bg-emerald-50 transition"
                 onClick={handleCategoryChipClick}
               >
                 + Add Category
               </div>
             )}
+            
+            {/* Category Chips */}
+            {(!categories || categories.length === 0) && !isOwner && (
+              <div
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 mt-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+              >
+                Uncategorised
+              </div>
+            )}
+            </div>
             {categories?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {categories.slice(0, 3).map((cat, index) => {
@@ -594,7 +611,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
                 <div className="z-10 flex items-center">
                   <Tooltip title={likes > 1 ? `${likes} Likes` : likes === 1 ? `1 Like` : `No Likes`} arrow>
                     <IconButton onClick={onLikeClick}>
-                      {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon />}
+                      {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon className="text-black"/>}
                     </IconButton>
                   </Tooltip>
                   <span className="text-sm text-gray-500">{likes > 0 ? likes : null}</span>
@@ -726,9 +743,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
                       {isEditing ? 'Stop Editing' : 'Edit'}
                     </button>)}
                     {isOwner && (<DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>)}
-                    {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={''}>
-                      Add Category
-                    </button>)}
                     {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
                     </button>}
@@ -837,7 +851,9 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
               )}
 
               {activeTab === 'Summary' && (
-                <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
+                <div className="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-md text-black font-sans max-h-[490px]">
+                {/* Summary Area - 60% */}
+                <div className={`${showChat ? "lg:w-3/5" : "w-full"} pr-2 overflow-y-auto scrollbar transition-all duration-300 scrollable-chat`}>
                   {isEditing ? (
                     <>
                       <MyEditor note={summaryContent} setNote={handleContentChange} />
@@ -850,6 +866,11 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
                     </>
                   ) : (
                     <>
+                      <div>
+                        <button onClick={() => setShowChat(prev=> !prev)} className="bg-emerald-500 text-white rounded-md px-4 py-2 my-5 hover:bg-emerald-600">
+                          💡 Custom Prompt
+                        </button>
+                      </div>
                       <div
                         className="pb-4 text-black"
                         dangerouslySetInnerHTML={{ __html: summaryContent }}
@@ -857,58 +878,76 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
                       <hr />
                       <p className="mt-3 font-medium">Tags</p>
                       <div className="flex flex-wrap gap-2 mt-2">
-                      <button
+                        <button
                           className="border bg-emerald-400 rounded-xl px-3 hover:bg-white text-white hover:text-emerald-400 hover:border border-emerald-800 text-xs"
                           onClick={openAddTag}
                         >
                           Add Tag +
                         </button>
                         {isAddTagOpen && (
-                              <>
-                                <input
-                                  ref={tagInputRef}
-                                  type="text"
-                                  value={newTag}
-                                  onChange={(e) => setNewTag(e.target.value)}
-                                  onKeyDown={async (e) => {
-                                    if (e.key === "Enter" && newTag.trim() !== "") {
-                                      e.preventDefault();
-                                      await handleAddTag();
-                                    }
-                                  }}
-                                  className="border px-2 py-1 text-xs rounded"
-                                  placeholder="Enter tag"
-                                />
-                                <button
-                                  onClick={() => {
-                                    setNewTag("");
-                                    setIsAddTagOpen(false);
-                                  }}
-                                  className="text-xs text-red-500 border border-red-500 rounded px-2 ml-1 hover:bg-red-100"
-                                >
-                                  Cancel
-                                </button>
-                              </>
-                            )}
-                          {tags.map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="flex items-center gap-1 px-3 py-1 bg-gray-300 rounded-full text-xs"
-                              >
-                                {tag}
-                                <button
-                                  onClick={() => handleRemoveTag(tag)}
-                                  className="ml-1 text-red-500 hover:text-red-700"
-                                  title="Remove tag"
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
+                          <>
+                            <input
+                              ref={tagInputRef}
+                              type="text"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyDown={async (e) => {
+                                if (e.key === "Enter" && newTag.trim() !== "") {
+                                  e.preventDefault();
+                                  await handleAddTag();
+                                }
+                              }}
+                              className="border px-2 py-1 text-xs rounded"
+                              placeholder="Enter tag"
+                            />
+                            <button
+                              onClick={() => {
+                                setNewTag("");
+                                setIsAddTagOpen(false);
+                              }}
+                              className="text-xs text-red-500 border border-red-500 rounded px-2 ml-1 hover:bg-red-100"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                        {tags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="flex items-center gap-1 px-3 py-1 bg-gray-300 rounded-full text-xs"
+                          >
+                            {tag}
+                            <button
+                              onClick={() => handleRemoveTag(tag)}
+                              className="ml-1 text-red-500 hover:text-red-700"
+                              title="Remove tag"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
                       </div>
                     </>
                   )}
                 </div>
+          
+                {/* Chat Area - 40% (Fixed) */}
+                {showChat && (
+                  <div className="w-full  lg:w-2/5 pl-2 border-l border-gray-300 flex flex-col">
+                    <div className="flex justify-end mb-2">
+                      <IconButton
+                        onClick={() => setShowChat(false)}
+                        className="text-black"
+                      >
+                        <Close />
+                      </IconButton>
+                    </div>
+                    <div className="flex-1">
+                      <Chatbot cardId={cardData.card_id}/>
+                    </div>
+                  </div>
+                )}
+              </div>
               )}
               {activeTab === 'Q&A' && (
                   <div className="p-4 bg-gray-50 rounded-md text-black font-sans">

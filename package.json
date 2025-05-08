@@ -37,6 +37,7 @@
     "react-toastify": "^11.0.5",
     "scrollbar": "^0.1.12",
     "tailwind": "^4.0.0",
+    "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.1.1"
   },
   "devDependencies": {

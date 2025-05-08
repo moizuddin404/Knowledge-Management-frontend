@@ -12,6 +12,7 @@ import AppsIcon from '@mui/icons-material/Apps';
 import BackToTop from '../components/BackToTop';
 import debounce from 'lodash.debounce';
 import knowledgeCardApi from '../services/KnowledgeCardService';
+import Select from 'react-select';
 
 const Suites = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +27,8 @@ const Suites = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const { user } = useContext(AuthContext);
   const [userId, setUserId] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   // Memoized debounced handler
   const debouncedSetSearchQuery = useMemo(
@@ -140,27 +143,38 @@ const Suites = () => {
     }
   }, [page, value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
 
-  const getFilteredCards = () => {
+  
+  const selectedCategoryNames = selectedCategories.map((c) => c.value);
+  const filteredCards = useMemo(() => {
     const baseData = kcData;
-
-    if (!searchQuery.trim()) return baseData;
-
+  
+    if (!searchQuery.trim() && selectedCategoryNames.length === 0) return baseData;
+  
     const lowerQuery = searchQuery.toLowerCase();
     const queryWords = lowerQuery.split(/\s+/);
-
+  
     return baseData.filter((card) => {
-      const combinedWords = [
-        ...(card?.title?.toLowerCase().split(/\s+/) || []),
-        ...(card?.summary?.toLowerCase().split(/\s+/) || []),
-        ...(card?.category?.map(tag => tag.toLowerCase()) || []),
-        ...(card?.tags?.map((tag) => tag.toLowerCase()) || []),
-      ];
-
-      return queryWords.some((qWord) => combinedWords.includes(qWord));
+      const cardCategories = card?.category?.map((tag) => tag.toLowerCase()) || [];
+  
+      const matchesSearch = queryWords.some((qWord) =>
+        [
+          ...(card?.title?.toLowerCase().split(/\s+/) || []),
+          ...cardCategories,
+          ...(card?.summary?.toLowerCase().split(/\s+/) || []),
+          ...(card?.tags?.map((tag) => tag.toLowerCase()) || [])
+        ].includes(qWord)
+      );
+  
+      const matchesCategory =
+        selectedCategoryNames.length === 0 ||
+        selectedCategoryNames.some((cat) =>
+          cardCategories.includes(cat.toLowerCase())
+        );
+  
+      return matchesSearch && matchesCategory;
     });
-  };
+  }, [searchQuery, kcData, selectedCategoryNames]);
 
-  const filteredCards = useMemo(getFilteredCards, [searchQuery, kcData]);
 
   //useEffect for userId
     useEffect(() => {
@@ -178,6 +192,23 @@ const Suites = () => {
       fetchUserId();
     }, []);
 
+    useEffect(() => {
+      const fetchCategories = async () => {
+        try {
+          const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+          setCategories(response.data.categories || []);
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+        }
+      };
+    
+      fetchCategories();
+    }, [backendUrl]);
+  
+    const categoryOptions = categories.map((c) => ({
+      value: c.name,
+      label: c.name
+    }));
   return (
     <>
       <Navbar searchQuery={inputValue} handleSearchChange={handleSearchChange} />
@@ -192,7 +223,7 @@ const Suites = () => {
           />
         </div>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-between items-center mx-12 my-10 lg:my-2 gap-4">
         <Tabs
           value={value}
           onChange={handleTabChange}
@@ -207,6 +238,64 @@ const Suites = () => {
           <Tab icon={<AppsIcon className="text-emerald-500" />} aria-label="All" />
           <Tab icon={<BookmarkIcon className="text-emerald-500" />} aria-label="Bookmarked" />
         </Tabs>
+        {/* Category Select */}
+                  <div className=" w-full sm:w-64">
+                    <Select
+                      isMulti
+                      options={categoryOptions}
+                      value={selectedCategories}
+                      onChange={(selected) => setSelectedCategories(selected)}
+                      closeMenuOnSelect={false}
+                      className="w-full"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          minHeight: '41px',
+                          height: '41px',
+                          width: '100%',
+                          fontSize: '0.875rem',
+                          padding: '0 8px',
+                          borderColor: state.isFocused ? '#10B981' : '#ccc', // emerald-500
+                          boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.4)' : 'none', // Emerald ring
+                          '&:hover': {
+                            borderColor: '#10B981',
+                          },
+                          overflow: 'auto',
+                          scrollbarWidth: 'none',
+                        }),
+                        multiValue: (base) => ({
+                          ...base,
+                          backgroundColor: '#d1fae5',
+                          color: '#065f46',
+                          margin: '2px',
+                        }),
+                        multiValueContainer: (base) => ({
+                          ...base,
+                          display: 'flex',
+                          flexWrap: 'nowrap',
+                          overflowX: 'auto',
+                          maxHeight: '36px',
+                          padding: '0',
+                        }),
+                        menuList: (base) => ({
+                          ...base,
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          scrollbarColor: '#10B981 #fff',
+                        }),
+                        option: (base) => ({
+                          ...base,
+                          color: 'black',
+                          backgroundColor: 'white',
+                          '&:hover': {
+                            backgroundColor: '#d1fae5',
+                            color: '#065f46',
+                          },
+                        }),
+                      }}
+                      placeholder="Filter by category"
+                    />
+                  </div>
       </div>
 
       <AllKnowledgeCards

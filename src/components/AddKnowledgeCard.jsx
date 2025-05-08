@@ -4,7 +4,8 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CancelIcon from "@mui/icons-material/Cancel";
-import { IconButton } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
+import AddIcon from "@mui/icons-material/Add";
 
 import {
   EditorState,
@@ -16,7 +17,7 @@ import htmlToDraft from 'html-to-draftjs';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
+const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedFail }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [link, setLink] = useState('');
   const [note, setNote] = useState('');
@@ -43,40 +44,49 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
 
   const handleSave = async () => {
     if (!link) return;
-
+  
     setIsLoading(true);
     setIsOpen(false);
     handleStartSaving();
-
+  
     try {
       const token = localStorage.getItem("token");
-
+  
       const payload = {
         token: token,
         source_url: link,
         note: note || "",
       };
-
+  
       const response = await axios.post(`${backendUrl}/knowledge-card/`, payload, {
         headers: {
           "Content-Type": "application/json",
         },
         timeout: 120000,
       });
-      
+  
       if (onSave) {
         onSave(response.data);
       }
-
+  
       toast.success("Card Added");
-      handleSaved();
-
+      handleSaved(); 
+  
       setLink("");
       setNote("");
       setEditorState(EditorState.createEmpty());
       setIsOpen(false);
+  
     } catch (error) {
       console.error("Error saving knowledge card:", error);
+      if (error.response && error.response.status === 400) {
+        setIsLoading(false);
+        toast.error("Card cannot be added! Bad request.");
+        handleSavedFail();
+      } else {
+        toast.error("Something went wrong while saving the card.");
+      }
+  
     } finally {
       setIsLoading(false);
     }
@@ -95,12 +105,22 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved }) => {
   return (
     <>
       
-        <button
-          className="w-auto h-10 px-2 bg-[#1f7281] text-white rounded hover:bg-emerald-800 transition"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          Add Card
-        </button>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => setIsOpen(!isOpen)}
+        sx={{
+          backgroundColor: '#1f7281',
+          '&:hover': {
+            backgroundColor: '#065f46', // emerald-800
+          },
+          textTransform: 'none',
+          height: 40,
+          px: 2,
+        }}
+      >
+        Add Card
+      </Button>
   
       {isOpen && (
         <div
