@@ -30,7 +30,7 @@ import axios from "axios";
 import Chatbot from "./Chat";
 import "../css/scrollbar.css";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -323,6 +323,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   
       console.log('Updated categories:', response.data);
       toast.success("Categories updated!");
+      handleNewCategoryAdded();
       setCategories(newCategories);
       setCategoryEditorOpen(false);
     } catch (error) {
@@ -356,6 +357,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
   
     fetchCategories();
   }, []);
+ 
 
 
   // ===================== Actual component rendering ========================================
@@ -443,15 +445,26 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
               {cardData.title}
             </div>
 
+            <div className="flex flex-wrap gap-2 mt-2">
             {/* Category Chips */}
             {(!categories || categories.length === 0) && isOwner && (
               <div
-                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 mt-1.5 rounded-full cursor-pointer hover:bg-emerald-50 transition"
                 onClick={handleCategoryChipClick}
               >
                 + Add Category
               </div>
             )}
+            
+            {/* Category Chips */}
+            {(!categories || categories.length === 0) && !isOwner && (
+              <div
+                className="inline-block text-xs text-emerald-600 border border-emerald-200 px-2 py-1 mt-1 rounded-full cursor-pointer hover:bg-emerald-50 transition"
+              >
+                Uncategorised
+              </div>
+            )}
+            </div>
             {categories?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {categories.slice(0, 3).map((cat, index) => {
@@ -730,9 +743,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId }) => {
                       {isEditing ? 'Stop Editing' : 'Edit'}
                     </button>)}
                     {isOwner && (<DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>)}
-                    {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={''}>
-                      Add Category
-                    </button>)}
                     {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
                       Go to Source
                     </button>}
