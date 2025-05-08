@@ -15,7 +15,8 @@ const AllKnowledgeCards = ({
   hasMore,
   removeCardFromUI,
   currentTab,
-  userId
+  userId,
+  handleNewCategoryAdded
 }) => {
   const observer = useRef();
 
@@ -92,6 +93,7 @@ const AllKnowledgeCards = ({
                   removeCardFromUI={removeCardFromUI}
                   currentTab={currentTab}
                   userId={userId}
+                  handleNewCategoryAdded={handleNewCategoryAdded}
                 />
               </div>
             )

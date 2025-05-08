@@ -10,6 +10,7 @@ import BackToTop from "../components/BackToTop";
 import debounce from 'lodash.debounce';
 import knowledgeCardApi from "../services/KnowledgeCardService";
 import Select from 'react-select';
+import toast from "react-hot-toast";
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
@@ -196,6 +197,11 @@ const filteredCards = useMemo(() => {
     setShowSkeletonCard(false);
   };
 
+  const handleSavedFail = () => {
+    setShowSkeletonCard(false);
+    toast.error("Card cannot be added!");
+  };
+
   const removeCardFromFavs = (cardId) => {
     setKcData((prev) => prev.filter((card) => card.card_id !== cardId));
   };
@@ -247,18 +253,22 @@ const filteredCards = useMemo(() => {
     fetchUserId();
   }, []);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
-        setCategories(response.data.categories || []);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+      setCategories(response.data.categories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
   
+  useEffect(() => {
     fetchCategories();
   }, [backendUrl]);
+
+  const handleNewCategoryAdded = () => {
+    fetchCategories(); // refresh filter list when a new category is added
+  };
 
   const categoryOptions = categories.map((c) => ({
     value: c.name,
@@ -292,6 +302,7 @@ const filteredCards = useMemo(() => {
             }}
             handleStartSaving={handleStartSaving}
             handleSaved={handleSaved}
+            handleSavedFail={handleSavedFail}
           />
           <UploadFileForCard
             onSave={(newCard) => {
@@ -300,6 +311,7 @@ const filteredCards = useMemo(() => {
             }}
             handleStartSaving={handleStartSaving}
             handleSaved={handleSaved}
+            handleSavedFail={handleSavedFail}
           />
         </div>
 
@@ -407,6 +419,7 @@ const filteredCards = useMemo(() => {
           hasMore={filter === "All" ? hasMore : filter === "Favourites"? hasMore : filter === "Archived"? hasMore : false}
           removeCardFromUI={handleRemoveCard}
           userId={userId}
+          handleNewCategoryAdded={handleNewCategoryAdded}
         />
         <BackToTop />
         </>    

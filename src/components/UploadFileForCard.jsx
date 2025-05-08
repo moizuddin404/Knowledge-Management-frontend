@@ -7,7 +7,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import 'react-toastify/dist/ReactToastify.css';
 
-const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
+const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved, handleSavedFail }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [file, setFile] = useState(null);
     const [note, setNote] = useState('');
@@ -50,6 +50,7 @@ const UploadFileForCard = ({ onSave, handleStartSaving, handleSaved }) => {
         } catch (error) {
             console.error("Error uploading file:", error);
             toast.error("Upload failed!");
+            handleSavedFail();
         } finally {
             setIsLoading(false);
         }
