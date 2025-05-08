@@ -5,6 +5,42 @@ import knowledgeCardApi from "../services/KnowledgeCardService";
 import LaunchIcon from '@mui/icons-material/Launch';
 import { IconButton, Tooltip } from '@mui/material';
 
+const QnAItem = ({ item }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className=" p-4 bg-gray-50 rounded-md shadow-sm text-left">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex flex-row justify-between font-semibold text-black-700 mb-1 w-full gap-2"
+      >
+        <span className="text-left">Q: {item.question}</span>
+        <span>{isOpen ? "▲" : "▼"}</span>
+      </button>
+      {isOpen && <p className="text-gray-800 mt-2">A: {item.answer}</p>}
+    </div>
+  );
+};
+
+const KnowledgeItem = ({ item }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left font-semibold text-black-700 flex justify-between"
+      >
+        <span>{item.topic}</span>
+        <span>{isOpen ? "▲" : "▼"}</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 text-sm text-gray-700">
+          <p>{item.description}</p>
+          <p className="text-xs text-gray-500 mt-1">{item.difficulty}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SharedKnowledgeCard = () => {
   const { token } = useParams(); // token from URL
@@ -13,6 +49,8 @@ const SharedKnowledgeCard = () => {
   const [category, setCategory] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [summaryContent, setSummaryContent] = useState("");
+  const [qnaContent, setQnaContent] = useState("");
+  const [kmContent, setKmContent] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +68,8 @@ const SharedKnowledgeCard = () => {
         setCategory(data.category || "No Category Yet...");
         setNoteContent(data.note || "No Note Yet...");
         setSummaryContent(data.summary || "No Summary Yet...");
+        setQnaContent(Array.isArray(data.qna) ? data.qna : []);
+        setKmContent(Array.isArray(data.knowledge_map) ? data.knowledge_map : []);
         setSourceUrl(data.source_url);
         setTags(data.tags || []);
       } catch (err) {
@@ -61,74 +101,101 @@ const SharedKnowledgeCard = () => {
               <LaunchIcon />
             </IconButton>
           </Tooltip>
-          )
-      }
+        )
+        }
       </div>
-      {category && (
-        <div className="mt-6 mb-4">
-            <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm pb-1">
-            {category}
+      {Array.isArray(category) && category.length > 0 && (
+        <div className="mt-6 mb-4 flex flex-wrap gap-2">
+          {category.map((cat, idx) => (
+            <span
+              key={idx}
+              className="inline-block bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm"
+            >
+              {cat}
             </span>
+          ))}
         </div>
-        )}
+      )}
 
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
-      <Tabs
+      <Box
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Tabs
           value={tabIndex}
           onChange={handleTabChange}
-          variant="scrollable" 
+          variant="scrollable"
           scrollButtons="auto"
           allowScrollButtonsMobile
-          TabIndicatorProps={{ style: { transition: 'none' } }}
-          sx={{ overflowX: "hidden" }}
+          TabIndicatorProps={{
+            style: { backgroundColor: "#10B981", transition: "none" }, // emerald-500
+          }}
+          sx={{
+            "& .MuiTab-root": {
+              color: "#6B7280", // gray-500 (inactive tab)
+              "&.Mui-selected": {
+                color: "#10B981", // emerald-500 (active tab)
+              },
+            },
+            overflowX: "hidden",
+          }}
         >
-          <Tab
-      label="Note"
-      sx={{
-        minWidth: 120,
-        maxWidth: 120,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis"
-      }}
-    />
-          <Tab
-      label="Summary"
-      sx={{
-        minWidth: 120,
-        maxWidth: 120,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis"
-      }}
-    />
+          <Tab label="Note" />
+          <Tab label="Summary" />
+          {qnaContent.length > 0 && <Tab label="Q&A" />}
+          {kmContent.length > 0 && <Tab label="Knowledge Map" />}
         </Tabs>
       </Box>
 
       {/* Tab Content */}
       {/* Tab Content with Typography styles */}
-    <div className="mt-4 text-gray-800 leading-relaxed prose max-w-none font-sans">
+      <div className="mt-4 text-gray-800 leading-relaxed prose max-w-none font-sans">
         {tabIndex === 0 && (
-        <div dangerouslySetInnerHTML={{ __html: noteContent }} />
+          <div dangerouslySetInnerHTML={{ __html: noteContent }} />
         )}
         {tabIndex === 1 && (
-        <div dangerouslySetInnerHTML={{ __html: summaryContent }} />
+          <div dangerouslySetInnerHTML={{ __html: summaryContent }} />
         )}
-    </div>
-    {tags?.length > 0 && (
-    <div className="mt-6 flex flex-wrap gap-2">
-        {tags.map((tag, idx) => (
-        <span
-            key={idx}
-            className="px-3 py-1 bg-gray-300 rounded-full text-xs text-gray-800"
-        >
-        {tag}
-      </span>
-    ))}
-  </div>
-)}
+        {tabIndex === 2 && qnaContent.length > 0 && (
+          <div className="space-y-4">
+            {qnaContent.map((item, index) => (
+              <QnAItem key={index} item={item} />
+            ))}
+          </div>
+        )}
 
+        {tabIndex === 3 && Array.isArray(kmContent) && kmContent.length > 0 && (
+          <div className="space-y-6">
+            {kmContent.map((section, i) => (
+              <div key={i}>
+                <h2 className="text-lg font-semibold mb-2">{section.section}</h2>
+                <div className="space-y-3">
+                  {section.items.map((item, j) => (
+                    <KnowledgeItem key={j} item={item} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {tags?.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {tags.map((tag, idx) => (
+            <span
+              key={idx}
+              className="px-3 py-1 bg-gray-300 rounded-full text-xs text-gray-800"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
     </div>
   );
