@@ -1,34 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useRef } from "react";
-import "../css/KnowledgeCard.css";
-import { Autocomplete, Button, CircularProgress, IconButton, Popper, TextField, Tooltip } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Close, Favorite, FavoriteBorder } from "@mui/icons-material";
-import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
-import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
-import PublicIcon from '@mui/icons-material/Public';
-import PublicOffIcon from '@mui/icons-material/PublicOff';
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import CancelIcon from "@mui/icons-material/Cancel";
-import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
-import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded';
-import knowledgeCardApi from "../services/KnowledgeCardService";
-import MyEditor from "./RichTextEditor"
-import { AuthContext } from "../context/AuthContext";
+import React, { useRef, useEffect, useState } from "react";
+import { Autocomplete, Button, CircularProgress, IconButton, Popper, 
+         TextField, Tooltip } from "@mui/material";
+import { Close, Favorite, FavoriteBorder, EditRounded, ThumbUpRounded, ThumbUpOutlined,
+         Public, PublicOff, DownloadRounded, OpenInNewRounded, BookmarkBorder, Bookmark,
+         Cancel, ArrowOutward, MoveToInboxRounded, MoreVert } from "@mui/icons-material";
 import { toast } from 'react-hot-toast';
-import 'react-toastify/dist/ReactToastify.css';
-import DeleteDialog from "./DeleteDialog";
-import ShareDialog from "./ShareCardDialog";
-import CopyLinkDialog from "./CopyLinkDialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import MyEditor from "./RichTextEditor"
+import DeleteDialog from "./DeleteDialog";
+import CopyLinkDialog from "./CopyLinkDialog";
 import NoUrlModal from "./NoUrlModal";
 import axios from "axios";
 import Chatbot from "./Chat";
+import 'react-toastify/dist/ReactToastify.css';
+import knowledgeCardApi from "../services/KnowledgeCardService";
 import "../css/scrollbar.css";
+import "../css/KnowledgeCard.css";
 
 const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -68,9 +56,8 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
   const [showChat, setShowChat] = useState(false);
 
-  const { user } = useContext(AuthContext);
   const isOwner = userId === cardData.user_id;
-  const [isBookmarked, setIsBookmarked] = useState(cardData?.bookmarked_by?.includes((user?.userId)));
+  const [isBookmarked, setIsBookmarked] = useState(cardData?.bookmarked_by?.includes((userId)));
   const handleTabChange = (tab) => {
     if (!isEditing) {
       setActiveTab(tab);
@@ -121,7 +108,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
   const onLikeClick = async (e) => {
     e.stopPropagation();
-    const userId = user?.userId;
     setIsLiked(prev => !prev);
     const response = await knowledgeCardApi.handleLike(cardData, userId);
     setLikes(prev => prev + (isLiked ? -1 : 1));
@@ -130,7 +116,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
   const onBookmarkClick = async (e) => {
     e.stopPropagation();
-    const userId = user?.userId;
   
     const response = await knowledgeCardApi.handleBookmark(cardData, userId);
   
@@ -204,7 +189,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
     setIsExpanded(!isExpanded);
     // Reset states when closing
     if (isExpanded) {
-      setActiveTab('Note');
+      setActiveTab('Summary');
       setIsMenuOpen(false);
       setIsEditing(false);
     }
@@ -219,6 +204,10 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   //   month: 'short',
   //   year: 'numeric',
   // });
+
+  const capitalizeFirstLetter = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
 
   const stripHtml = (html) => {
     const tmp = document.createElement("div");
@@ -239,7 +228,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
   // Add tag in Knowledge card
   const handleAddTag = async () => {
-    const userId = user?.userId;
     try {
       const response = await knowledgeCardApi.handleAddTag(cardData, newTag, userId);
       console.log("Add Tag Response", response.tags);
@@ -262,7 +250,6 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   
   // Remove tag functionality
   const handleRemoveTag = async (tagToRemove) => {
-    const userId = user?.userId;
     try {
       const response = await knowledgeCardApi.handleRemoveTag(cardData, tagToRemove, userId);
   
@@ -324,7 +311,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   
       console.log('Updated categories:', response.data);
       toast.success("Categories updated!");
-      handleNewCategoryAdded();
+      handleNewCategoryAdded(userId);
       setCategories(newCategories);
       setCategoryEditorOpen(false);
     } catch (error) {
@@ -406,7 +393,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                         handleGoToSource();
                       }}
                     >
-                      <OpenInNewRoundedIcon style={{ color: 'black' }} />
+                      <OpenInNewRounded style={{ color: 'black' }} />
                     </IconButton>
                   </Tooltip>            
             </div>
@@ -423,7 +410,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                    toggleKcMenu();
                    }}
                    >
-                  <MoreVertIcon style={{ color: 'black' }} />
+                  <MoreVert style={{ color: 'black' }} />
                 </IconButton>
             </Tooltip>
             <div
@@ -439,7 +426,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                         toggleKcMenu();
                       }}
                     >
-                      {cardData.archive ? "Unarchive" :   <span><MoveToInboxRoundedIcon fontSize="small" className="mr-1"/>Archive</span>}
+                      {cardData.archive ? "Unarchive" :   <span><MoveToInboxRounded fontSize="small" className="mr-1"/>Archive</span>}
                     </button>
 
                     {/* Delete Dialog */}
@@ -496,7 +483,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                       }
                       title={catStr}
                     >
-                      {displayText}
+                      {capitalizeFirstLetter(displayText)}
                     </div>
                   );
                 })}
@@ -621,7 +608,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                 <div className="z-10 flex items-center">
                   <Tooltip title={likes > 1 ? `${likes} Likes` : likes === 1 ? `1 Like` : `No Likes`} arrow>
                     <IconButton onClick={onLikeClick}>
-                      {isLiked ? <ThumbUpRoundedIcon className="text-emerald-500" /> : <ThumbUpOutlinedIcon className="text-black"/>}
+                      {isLiked ? <ThumbUpRounded className="text-emerald-500" /> : <ThumbUpOutlined className="text-black"/>}
                     </IconButton>
                   </Tooltip>
                   <span className="text-sm text-gray-500">{likes > 0 ? likes : null}</span>
@@ -663,7 +650,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                       {downloading ? (
                         <CircularProgress size={24} sx={{ color: '#10b981' }} />
                       ) : (
-                        <DownloadRoundedIcon className="text-black" />
+                        <DownloadRounded className="text-black" />
                       )}
                     </div>
                   </IconButton>
@@ -687,7 +674,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                { !isOwner && ( <div className="z-10">
                   <Tooltip title={isBookmarked ? "Remove Bookmark" : "Add Bookmark"} arrow>
                     <IconButton onClick={onBookmarkClick}>
-                      {isBookmarked ? <BookmarkIcon className="text-emerald-400" /> : <BookmarkBorderIcon className="text-black" />}
+                      {isBookmarked ? <Bookmark className="text-emerald-400" /> : <BookmarkBorder className="text-black" />}
                     </IconButton>
                   </Tooltip>
                 </div>)}
@@ -706,7 +693,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
 
       {isExpanded && (
-        <div className="fixed inset-0 text-black bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 text-black bg-black/60 backdrop-blur-sm flex items-center justify-center z-9999 px-4">
           <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] rounded-xl shadow-xl p-4 overflow-hidden">
 
 
@@ -741,7 +728,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                     className="text-black"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                   >
-                    <MoreVertIcon />
+                    <MoreVert />
                   </IconButton>
                 </Tooltip>
 
@@ -750,7 +737,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                 {isMenuOpen && (
                   <div className="absolute top-10 right-10 bg-white shadow-lg rounded-md py-2 z-50 flex flex-col text-sm min-w-[140px]">
                     {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={handleEditToggle}>
-                      {isEditing ? 'Stop Editing' : 'Edit'}
+                      {isEditing ? 'Stop Editing' : <><EditRounded className="mr-2"/>Edit</>}
                     </button>)}
                     {isOwner && (<DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>)}
                     {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
@@ -771,7 +758,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                         setIsDownloadMenuOpen(!isDownloadMenuOpen);
                       }}
                     >
-                      <ArrowOutwardIcon style={{ color: 'black' }} />
+                      <ArrowOutward style={{ color: 'black' }} />
                     </IconButton>
                   </Tooltip>
 
@@ -808,7 +795,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                           className="text-black"
                           onClick={handlePublicToggle}
                         >
-                          <PublicIcon />
+                          <Public />
                         </IconButton>
                       </Tooltip>
                     )
@@ -818,7 +805,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                           className="text-black"
                           onClick={handlePublicToggle}
                         >
-                          <PublicOffIcon />
+                          <PublicOff />
                         </IconButton>
                       </Tooltip>
                     )
@@ -831,254 +818,266 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                     className="text-black"
                     onClick={toggleExpand}
                   >
-                    <CancelIcon />
+                    <Cancel />
                   </IconButton>
                 </Tooltip>
               </div>
             </div>
 
             {/* Main Tab Content */}
-            <div className="flex-1 overflow-y-auto border-t border-b">
+           <div className="flex-1 overflow-y-auto border-t border-b bg-gray-50 scrollable-chat">
+              {/* Note Tab */}
               {activeTab === 'Note' && (
-                <div className="p-4 bg-gray-50 rounded-md text-black">
+                <div className="p-6 rounded-md text-black">
                   {isEditing ? (
                     <>
                       <MyEditor note={noteContent} setNote={handleContentChange} />
                       <button
-                        className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
+                        className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 hover:scale-[1.02] transition-all"
                         onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
                       >
-                        Save
+                        💾 Save
                       </button>
                     </>
                   ) : (
                     <div
-                      className="text-black"
+                      className="prose max-w-none"
                       dangerouslySetInnerHTML={{ __html: noteContent }}
                     />
                   )}
                 </div>
               )}
 
+              {/* Summary Tab */}
               {activeTab === 'Summary' && (
-                <div className="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-md text-black font-sans max-h-[490px]">
-                {/* Summary Area - 60% */}
-                <div className={`${showChat ? "lg:w-3/5" : "w-full"} pr-2 overflow-y-auto scrollbar transition-all duration-300 scrollable-chat`}>
-                  {isEditing ? (
-                    <>
-                      <MyEditor note={summaryContent} setNote={handleContentChange} />
-                      <button
-                        className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
-                        onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
-                      >
-                        Save
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <button onClick={() => setShowChat(prev=> !prev)} className="bg-emerald-500 text-white rounded-md px-4 py-2 my-5 hover:bg-emerald-600">
-                          💡 Custom Prompt
-                        </button>
-                      </div>
-                      <div
-                        className="pb-4 text-black"
-                        dangerouslySetInnerHTML={{ __html: summaryContent }}
-                      />
-                      <hr />
-                      <p className="mt-3 font-medium">Tags</p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <button
-                          className="border bg-emerald-400 rounded-xl px-3 hover:bg-white text-white hover:text-emerald-400 hover:border border-emerald-800 text-xs"
-                          onClick={openAddTag}
+                <div className="flex flex-col md:flex-row gap-4 p-6 font-sans max-h-[490px]">
+                  {/* Summary Area */}
+                  <div className={`${showChat ? "lg:w-3/5" : "w-full"} pr-2 overflow-y-auto transition-all duration-300`}>
+                    {isEditing ? (
+                      <>
+                        <div>
+                          <MyEditor note={summaryContent} setNote={handleContentChange} />
+                        </div>
+                        <div className="w-full flex justify-end">
+                            <button
+                          className="mt-4 mr-2 px-6 py-2 bg-red-400 text-white rounded-lg hover:bg-red-600 hover:scale-[1.02] transition-all"
+                          onClick={handleEditToggle}
                         >
-                          Add Tag +
+                          Cancel
                         </button>
-                        {isAddTagOpen && (
-                          <>
-                            <input
-                              ref={tagInputRef}
-                              type="text"
-                              value={newTag}
-                              onChange={(e) => setNewTag(e.target.value)}
-                              onKeyDown={async (e) => {
-                                if (e.key === "Enter" && newTag.trim() !== "") {
-                                  e.preventDefault();
-                                  await handleAddTag();
-                                }
-                              }}
-                              className="border px-2 py-1 text-xs rounded"
-                              placeholder="Enter tag"
-                            />
                             <button
-                              onClick={() => {
-                                setNewTag("");
-                                setIsAddTagOpen(false);
-                              }}
-                              className="text-xs text-red-500 border border-red-500 rounded px-2 ml-1 hover:bg-red-100"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
-                        {tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="flex items-center gap-1 px-3 py-1 bg-gray-300 rounded-full text-xs"
-                          >
-                            {tag}
+                          className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 hover:scale-[1.02] transition-all"
+                          onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
+                        >
+                          💾 Save
+                        </button>
+                        </div>
+                        
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setShowChat(prev => !prev)}
+                          className="bg-emerald-500 text-white rounded-md p-3 pr-5 my-5 hover:bg-emerald-600 transition-all"
+                        >
+                          💡 Ask AI
+                        </button>
+
+                        <h2 className="text-2xl font-bold text-center mb-4">{cardData.title}</h2>
+
+                        <div
+                          className="prose max-w-none pb-4"
+                          dangerouslySetInnerHTML={{ __html: summaryContent }}
+                        />
+                        <hr />
+                        <div className="mt-4">
+                          <p className="font-medium">Tags</p>
+                          <div className="flex flex-wrap gap-2 mt-2">
                             <button
-                              onClick={() => handleRemoveTag(tag)}
-                              className="ml-1 text-red-500 hover:text-red-700"
-                              title="Remove tag"
+                              className="border bg-emerald-400 text-white rounded-full px-3 py-1 text-xs hover:bg-white hover:text-emerald-500 hover:border-emerald-500 transition-all"
+                              onClick={openAddTag}
                             >
-                              ×
+                              ➕ Add Tag
                             </button>
-                          </span>
-                        ))}
+                            {isAddTagOpen && (
+                              <>
+                                <input
+                                  ref={tagInputRef}
+                                  type="text"
+                                  value={newTag}
+                                  onChange={(e) => setNewTag(e.target.value)}
+                                  onKeyDown={async (e) => {
+                                    if (e.key === "Enter" && newTag.trim() !== "") {
+                                      e.preventDefault();
+                                      await handleAddTag();
+                                    }
+                                  }}
+                                  className="border px-2 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                  placeholder="Enter tag"
+                                />
+                                <button
+                                  onClick={() => {
+                                    setNewTag("");
+                                    setIsAddTagOpen(false);
+                                  }}
+                                  className="text-xs text-red-500 border border-red-500 rounded-md px-2 hover:bg-red-100 transition-all"
+                                >
+                                  ❌ Cancel
+                                </button>
+                              </>
+                            )}
+                            {tags.map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="flex items-center gap-1 px-3 py-1 bg-gray-200 rounded-full text-xs"
+                              >
+                                {tag}
+                                <button
+                                  onClick={() => handleRemoveTag(tag)}
+                                  className="text-red-500 hover:text-red-700"
+                                  title="Remove tag"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Chat Area */}
+                  {showChat && (
+                    <div className="w-full lg:w-2/5 pl-2 border-l border-gray-300 flex flex-col">
+                      <div className="flex-1 p-2 bg-gray-100 rounded-lg shadow-inner">
+                        <div className="flex justify-between mb-2">
+                        <h3 className="text-lg font-semibold my-2 text-gray-700">Chat with AI</h3>
+                        <IconButton onClick={() => setShowChat(false)} className="text-black self-end">
+                          <Close />
+                        </IconButton>
                       </div>
-                    </>
+                        <Chatbot cardId={cardData.card_id} />
+                      </div>
+                    </div>
                   )}
                 </div>
-          
-                {/* Chat Area - 40% (Fixed) */}
-                {showChat && (
-                  <div className="w-full  lg:w-2/5 pl-2 border-l border-gray-300 flex flex-col">
-                    <div className="flex justify-end mb-2">
-                      <IconButton
-                        onClick={() => setShowChat(false)}
-                        className="text-black"
-                      >
-                        <Close />
-                      </IconButton>
-                    </div>
-                    <div className="flex-1">
-                      <Chatbot cardId={cardData.card_id}/>
-                    </div>
-                  </div>
-                )}
-              </div>
               )}
+
+              {/* Q&A Tab */}
               {activeTab === 'Q&A' && (
-                  <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
-                    <div className="flex flex-col gap-4 w-full">  
-                    {qaContent.length === 0 && (
-                        <button
-                          className={`self-start px-2 py-2 rounded-md font-semibold ${
-                            loading
-                              ? 'bg-gray-400 text-white cursor-wait'
-                              : 'bg-[#1f7281] text-white hover:bg-emerald-700'
-                          }`}
-                          onClick={handleGenerate}
-                          disabled={loading}
-                        >
-                          {loading ? 'Generating...' : 'Generate Question Answers'}
-                        </button>
-                      )}
-                      {/* Skeleton Loader */}
-                      {loading && (
-                        <div className="space-y-4 mt-4">
-                          {[...Array(5)].map((_, idx) => (
-                            <div key={idx} className="p-4 rounded-md border bg-white animate-pulse">
-                              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
-                              <div className="h-3 bg-gray-200 rounded w-full" />
-                            </div>
-                          ))}
+                <div className="p-6 rounded-md text-black font-sans space-y-4">
+                  {qaContent.length === 0 && (
+                    <button
+                      className={`px-4 py-2 rounded-md font-semibold transition-all ${
+                        loading
+                          ? 'bg-gray-400 text-white cursor-wait'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      }`}
+                      onClick={handleGenerate}
+                      disabled={loading}
+                    >
+                      {loading ? 'Generating...' : 'Generate Question Answers'}
+                    </button>
+                  )}
+
+                  {loading && (
+                    <div className="space-y-4">
+                      {[...Array(5)].map((_, idx) => (
+                        <div key={idx} className="p-4 bg-white border rounded-md animate-pulse">
+                          <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-gray-200 rounded w-full" />
                         </div>
-                      )}
-                      {/* Render Q&A */}
-                      {!loading && qaContent?.length > 0 && (
-                        <div className="mt-4 space-y-4">
-                          {qaContent.map((item, idx) => {
-                            const isOpen = visibleAnswers.includes(idx);
-                            return (
-                              <div
-                                key={idx}
-                                className="bg-white rounded-md p-4 shadow-sm border"
-                              >
-                                <div
-                                  className="flex justify-between items-center cursor-pointer"
-                                  onClick={() =>
-                                    setVisibleAnswers((prev) =>
-                                      prev.includes(idx)
-                                        ? prev.filter((i) => i !== idx)
-                                        : [...prev, idx]
-                                    )
-                                  }
-                                >
-                                  <p className="font-semibold text-emerald-700">
-                                    Q{idx + 1}: {item.question}
-                                  </p>
-                                  {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                                </div>
-                                <AnimatePresence initial={false}>
-                                  {isOpen && (
-                                    <motion.div
-                                      key="content"
-                                      initial={{ opacity: 0, height: 0 }}
-                                      animate={{ opacity: 1, height: "auto" }}
-                                      exit={{ opacity: 0, height: 0 }}
-                                      transition={{ duration: 0.2 }}
-                                      className="overflow-hidden mt-2"
-                                    >
-                                      <p className="text-gray-700">A: {item.answer}</p>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {!loading && !qaContent?.length && (
-                        <p className="mt-4 text-gray-500 italic">No question-answers yet. Click the button to generate.</p>
-                      )}
+                      ))}
                     </div>
-                  </div>
-                )}
-                {activeTab === 'Knowledge Map' && (
-                  <div className="p-4 bg-gray-50 rounded-md text-black font-sans">
-                    {kmContent.length === 0 && (
-                        <button
-                          className={`px-4 py-2 rounded-md font-semibold ${
-                            loadingKm
-                              ? 'bg-gray-400 text-white cursor-wait'
-                              : 'bg-[#1f7281] text-white hover:bg-emerald-700'
-                          }`}
-                          onClick={handleGenerateMap}
-                          disabled={loadingKm}
-                        >
-                          {loadingKm ? 'Generating knowledge Map for You...' : 'Generate Knowledge Map'}  
-                        </button>
-                      )}
-                      {loadingKm && (
-                        <div className="space-y-4 mt-4">
-                          {[...Array(5)].map((_, idx) => (
-                            <div key={idx} className="p-4 rounded-md border bg-white animate-pulse">
-                              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
-                              <div className="h-3 bg-gray-200 rounded w-full" />
+                  )}
+
+                  {!loading && qaContent.length > 0 && (
+                    <div className="space-y-4">
+                      {qaContent.map((item, idx) => {
+                        const isOpen = visibleAnswers.includes(idx);
+                        return (
+                          <div key={idx} className="bg-white p-4 rounded-lg shadow border">
+                            <div
+                              className="flex justify-between items-center cursor-pointer"
+                              onClick={() =>
+                                setVisibleAnswers((prev) =>
+                                  prev.includes(idx)
+                                    ? prev.filter((i) => i !== idx)
+                                    : [...prev, idx]
+                                )
+                              }
+                            >
+                              <p className="font-semibold text-emerald-700">
+                                Q{idx + 1}: {item.question}
+                              </p>
+                              {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                             </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* Render Map */}
-                      {!loadingKm && kmContent && (
-                    <div className="mt-4 space-y-6">
-                      {Array.isArray(kmContent) && kmContent.map((section, sectionIdx) => (
-                        <div key={sectionIdx} className="bg-gray-50 rounded-lg p-4 shadow border border-gray-200">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl"></span>
-                            <h2 className="text-lg font-semibold text-gray-800">{section.section}</h2>
+                            <AnimatePresence initial={false}>
+                              {isOpen && (
+                                <motion.div
+                                  key="content"
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden mt-2"
+                                >
+                                  <p className="text-gray-700">A: {item.answer}</p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
-                          <div className="space-y-3">
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!loading && qaContent.length === 0 && (
+                    <p className="text-gray-500 italic mt-4">No question-answers yet. Click the button to generate.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Knowledge Map Tab */}
+              {activeTab === 'Knowledge Map' && (
+                <div className="p-6 rounded-md text-black font-sans">
+                  {kmContent.length === 0 && (
+                    <button
+                      className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                        loadingKm
+                          ? 'bg-gray-400 text-white cursor-wait'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      }`}
+                      onClick={handleGenerateMap}
+                      disabled={loadingKm}
+                    >
+                      {loadingKm ? 'Generating Knowledge Map for You...' : 'Generate Knowledge Map'}
+                    </button>
+                  )}
+
+                  {loadingKm && (
+                    <div className="space-y-4 mt-4">
+                      {[...Array(5)].map((_, idx) => (
+                        <div key={idx} className="p-4 rounded-md border bg-white animate-pulse">
+                          <div className="h-4 bg-gray-300 rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-gray-200 rounded w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {!loadingKm && Array.isArray(kmContent) && (
+                    <div className="mt-6 space-y-6">
+                      {kmContent.map((section, sectionIdx) => (
+                        <div key={sectionIdx} className="bg-white rounded-lg p-6 shadow border border-gray-200">
+                          <h2 className="text-lg font-semibold text-gray-800 mb-3">{section.section}</h2>
+                          <div className="space-y-4">
                             {section.items.map((item, itemIdx) => {
                               const idx = `${sectionIdx}-${itemIdx}`;
                               const isOpen = visibleAnswers.includes(idx);
                               return (
-                                <div
-                                  key={idx}
-                                  className="bg-white rounded-md p-4 shadow-sm border"
-                                >
+                                <div key={idx} className="bg-gray-50 p-4 rounded-md shadow-sm border">
                                   <div
                                     className="flex justify-between items-center cursor-pointer"
                                     onClick={() =>
@@ -1089,9 +1088,10 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                                       )
                                     }
                                   >
-                                  <p className="font-semibold text-emerald-700">
-                                    {item.topic} <span className="ml-2 text-sm text-gray-500">{item.difficulty}</span>
-                                  </p>
+                                    <p className="font-semibold text-emerald-700">
+                                      {item.topic}
+                                      <span className="ml-2 text-sm text-gray-500">{item.difficulty}</span>
+                                    </p>
                                     {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                   </div>
                                   <AnimatePresence initial={false}>
@@ -1099,7 +1099,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                                       <motion.div
                                         key="content"
                                         initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: "auto" }}
+                                        animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
                                         transition={{ duration: 0.2 }}
                                         className="overflow-hidden mt-2"
@@ -1115,13 +1115,11 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                         </div>
                       ))}
                     </div>
-                    )}
-                    {!loading && !kmContent?.knowledgeMap?.length && (
-                    <p className="mt-4 text-gray-500 italic">No knowledge map available yet.</p>
-                    )}                
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
             </div>
+
           </div>
         </div>
       )}
