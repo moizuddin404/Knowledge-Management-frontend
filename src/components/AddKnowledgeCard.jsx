@@ -124,10 +124,12 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
   
       {isOpen && (
         <div
-          className="fixed top-0 left-0 w-full h-full text-black bg-black/60 flex items-center justify-center z-[999] px-4"
+          className="fixed top-0 left-0 w-full h-full text-black bg-black/60 flex items-center justify-center z-[999] px-4
+                    opacity-0 animate-[fadeOverlay_0.3s_ease-out_forwards]"
         >
           <div
-            className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[70%] lg:max-w-[60%] xl:max-w-[50%] bg-white p-4 sm:p-6 rounded-md shadow-md overflow-y-auto"
+            className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[70%] lg:max-w-[60%] xl:max-w-[50%] bg-white p-4 sm:p-6 rounded-md shadow-md overflow-y-auto
+                      transition duration-300 ease-out scale-95 opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex justify-end mb-2'>

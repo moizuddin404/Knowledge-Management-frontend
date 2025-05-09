@@ -253,27 +253,36 @@ const filteredCards = useMemo(() => {
     fetchUserId();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (userId) => {
     try {
-      const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+      const response = await axios.get(`${backendUrl}/knowledge-card/${userId}/categories`);
       setCategories(response.data.categories || []);
+      console.log("Fetched categories:", response.data.categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   };
   
   useEffect(() => {
-    fetchCategories();
-  }, [backendUrl]);
+    if (userId) {
+    fetchCategories(userId);
+  }
+  }, [userId]);
 
   const handleNewCategoryAdded = () => {
-    fetchCategories(); // refresh filter list when a new category is added
+    if (userId) {
+    fetchCategories(userId);
+  } // refresh filter list when a new category is added
   };
 
-  const categoryOptions = categories.map((c) => ({
-    value: c.name,
-    label: c.name
-  }));
+const capitalizeFirstLetter = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const categoryOptions = categories.map((c) => ({
+  value: c.name,
+  label: capitalizeFirstLetter(c.name) // Capitalize first letter of each category name
+}));
 
   return ( 
   <>
