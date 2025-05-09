@@ -312,6 +312,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
       const response = await axios.put(
         `${backendUrl}/knowledge-card/${cardData.card_id}/update-category`,
         {
+          user_id: cardData.user_id,
           categories: newCategories, // array 
         },
         {
@@ -335,9 +336,18 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   const deleteCategory = async (cardId, category) => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      await axios.post(`${backendUrl}/knowledge-card/${cardId}/remove-category`, {
-        categories: [category],
-      });
+      await axios.post(
+        `${backendUrl}/knowledge-card/${cardId}/remove-category`,
+        {
+          user_id: cardData.user_id,
+          categories: [category],
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     } catch (err) {
       console.error("Error removing category", err);
     }

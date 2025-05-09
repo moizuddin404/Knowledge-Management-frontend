@@ -255,8 +255,9 @@ const filteredCards = useMemo(() => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/knowledge-card/categories`);
+      const response = await axios.get(`${backendUrl}/knowledge-card/${userId}/categories`);
       setCategories(response.data.categories || []);
+      console.log("Fetched categories:", response.data.categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }

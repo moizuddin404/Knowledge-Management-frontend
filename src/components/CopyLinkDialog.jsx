@@ -125,9 +125,8 @@ function CopyLinkDialog({ cardData }) {
   return (
     <>
       {/* Share button */}
-      <IconButton
-      >
-        <LinkRoundedIcon onClick={openShareDialog} className='rotate-135' style={{color:"black"}}/>
+      <IconButton onClick={openShareDialog}>
+        <LinkRoundedIcon className='rotate-135' style={{ color: "black" }} />
       </IconButton>
       
       {/* Modal rendered using portal */}
