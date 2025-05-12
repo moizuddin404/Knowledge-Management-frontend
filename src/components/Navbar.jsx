@@ -219,13 +219,23 @@ function Navbar({ searchQuery, handleSearchChange }) {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={()=>{handleCloseUserMenu(); if(setting === 'Logout') {
-                  logout();
-                  navigate("/")
-                }}}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
+  <MenuItem
+    key={setting}
+    onClick={() => {
+      handleCloseUserMenu();
+
+      if (setting === 'Logout') {
+        logout();
+        navigate('/');
+      } else if (setting === 'Dashboard') {
+        navigate('/dashboard');
+      }
+    }}
+  >
+    <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
+  </MenuItem>
+))}
+
             </Menu>
           </Box>
         </Toolbar>
