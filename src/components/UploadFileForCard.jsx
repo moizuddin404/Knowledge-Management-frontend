@@ -184,6 +184,7 @@ const handleSave = async () => {
             disabled={isLoading || !file}
             variant="contained"
             sx={{
+              color:'white',
               backgroundColor: '#1f7281',
               '&:hover': { backgroundColor: '#16616f' }
             }}

@@ -110,6 +110,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
         startIcon={<AddIcon />}
         onClick={() => setIsOpen(!isOpen)}
         sx={{
+          color: 'white',
           backgroundColor: '#1f7281',
           '&:hover': {
             backgroundColor: '#065f46', // emerald-800

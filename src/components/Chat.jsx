@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import SendIcon from "@mui/icons-material/Send";
+import { Send, AddCircleOutlineRounded } from "@mui/icons-material";
 import axios from "axios";
 import "../css/scrollbar.css";
+import { Tooltip } from "@mui/material";
 
-const Chatbot = ({ cardId }) => {
+const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
@@ -54,21 +55,41 @@ const Chatbot = ({ cardId }) => {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`flex ${
-              msg.from === "user" ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div
-              className={`px-4 py-2 rounded-lg max-w-xs ${
-                msg.from === "user"
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-300 text-gray-900"
-              }`}
-            >
-              {msg.text}
+            <div className="flex items-start max-w-xs">
+              <div
+                className={`px-4 py-2 rounded-lg ${
+                  msg.from === "user"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-300 text-gray-900"
+                }`}
+              >
+                {msg.text}
+              </div>
+
+              {/* Show Save button only for bot messages */}
+              {msg.from === "bot" && (
+              <Tooltip title="Add to your notes" placement="top">
+                <button
+                  onClick={async () => {
+                    const updatedNote =
+                      noteContent === "No Note Yet..."
+                        ? msg.text
+                        : `${noteContent}\n\n${msg.text}`;
+                    setNoteContent(updatedNote);
+                    await addToNote(); // Save to backend
+                  }}
+                  className="ml-2 mt-1 self-end text-sm text-emerald-600 hover:text-emerald-800"
+                >
+                  <AddCircleOutlineRounded />
+                </button>
+              </Tooltip>
+            )}
             </div>
           </div>
         ))}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -85,7 +106,7 @@ const Chatbot = ({ cardId }) => {
           onClick={sendMessage}
           className="p-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600"
         >
-          <SendIcon fontSize="small" />
+          <Send fontSize="small" />
         </button>
       </div>
     </div>

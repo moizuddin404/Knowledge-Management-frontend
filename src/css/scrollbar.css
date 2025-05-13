@@ -14,7 +14,7 @@
   
   .scrollable-chat {
     scrollbar-width: thin;
-    scrollbar-color: #10b981 #e5e7eb;
+    scrollbar-color: #1f7281 #e5e7eb;
   }
   
   @keyframes fadeIn {
