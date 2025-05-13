@@ -524,7 +524,7 @@ useEffect(() => {
                   return (
                     <div
                       key={index}
-                      className="text-xs bg-emerald-100 text-emerald-900 px-2 py-1 rounded-full cursor-pointer"
+                      className="text-xs bg-emerald-100 text-emerald-900 px-2 py-1 rounded-full cursor-text"
                       onClick={(e)=> {
                         if (!isOwner) {
                           e.stopPropagation();
@@ -541,8 +541,11 @@ useEffect(() => {
                 {categories.length > 3 && (
                   <Tooltip title={displayCategoriesInTooltip(categories)}>
                   <div
-                    className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full"
-                    onClick={handleCategoryChipClick}
+                    className={`text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ${isOwner?'cursor-text':'cursor-pointer'}`}
+                    onClick={(e) =>{
+                      if (isOwner) {
+                        handleCategoryChipClick(e);}
+                      }}
                   >
                     +{categories.length - 3}
                   </div>
@@ -627,7 +630,7 @@ useEffect(() => {
                       e.stopPropagation();
                       setCategoryEditorOpen(false);
                     }}
-                    className="!bg-red-500 !text-white hover:!bg-red-600"
+                    className="!bg-gray-300 !text-white hover:!bg-gray-400"
                   >
                     Cancel
                   </Button>
@@ -782,7 +785,7 @@ useEffect(() => {
                     className="text-black"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                   >
-                    <MoreVert />
+                    <MoreVert className="text-black"/>
                   </IconButton>
                 </Tooltip>
 
@@ -810,18 +813,18 @@ useEffect(() => {
 
                 {/* Export Menu */}
                 <div className="relative">
-                  <Tooltip title="Export Card as" placement="top" arrow>
+                  <Tooltip title="Download Card" placement="top" arrow>
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsDownloadMenuOpen(!isDownloadMenuOpen);
                       }}
                     >
-                      <ArrowOutward style={{ color: 'black' }} />
+                      <DownloadRounded className="text-black"/>
                     </IconButton>
                   </Tooltip>
 
-                  <div className={`absolute right-0 top-10 bg-white shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
+                  <div className={`absolute right-0 top-11 bg-white shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
                     <button
                       className="block w-full px-4 py-2 hover:bg-[#d1fae5]"
                       onClick={(e) => {
@@ -877,7 +880,7 @@ useEffect(() => {
                     className="text-black"
                     onClick={toggleExpand}
                   >
-                    <Cancel />
+                    <Cancel className="text-black"/>
                   </IconButton>
                 </Tooltip>
               </div>

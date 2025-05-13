@@ -130,11 +130,15 @@ function Navbar({ searchQuery, handleSearchChange }) {
                   px: 2,
                   py: 0.5,
                   border: '1px solid #ccc',
-                  borderRadius: '4px',
+                  borderRadius: '5px',
                   backgroundColor: '#fff',
-                  width: '300px',
+                  width: '500px',
                   fontSize: '14px',
-                  color: '#1f7281'
+                  color: '#1f7281',
+                  transition: 'border 0.2s ease-in-out',
+                  '&:focus-within': {
+                    border: '1px solid #10B981',
+                  },
                 }}
                 inputProps={{ 'aria-label': 'search' }}
               />

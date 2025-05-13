@@ -10,6 +10,7 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
 
   const storageKey = `chatbot-messages-${cardId}`;
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -35,6 +36,10 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto"; // reset height
+      }
+
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const response = await axios.post(`${backendUrl}/knowledge-card/chatbot/`, {
@@ -57,7 +62,7 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
             key={index}
             className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div className="flex items-start max-w-xs">
+            <div className="flex items-start max-w-[75%]">
               <div
                 className={`px-4 py-2 rounded-lg ${
                   msg.from === "user"
@@ -93,22 +98,37 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-center gap-2 mt-4">
-        <input
-          type="text"
-          className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-400"
+      <div className="flex items-start gap-2 mt-4">
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          className="flex-1 px-4 py-2 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 overflow-hidden"
+          style={{ maxHeight: '8rem' }} // Limit the max height
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          onChange={(e) => {
+            setInput(e.target.value);
+            e.target.style.height = 'auto'; // Reset height
+            e.target.style.height = `${e.target.scrollHeight}px`; // Adjust to content
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault(); // Prevent newline
+              sendMessage();
+            }
+          }}
+          maxLength={250}
           placeholder="Type your message..."
         />
         <button
           onClick={sendMessage}
-          className="p-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600"
+          className="p-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 self-end"
         >
           <Send fontSize="small" />
         </button>
       </div>
+
+      <div className="text-sm text-gray-500 ml-2 mt-1">{input.length}/250 characters</div>
+
     </div>
   );
 };
