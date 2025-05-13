@@ -3,10 +3,14 @@ import { Autocomplete, Button, CircularProgress, IconButton, Popper,
          TextField, Tooltip } from "@mui/material";
 import { Close, Favorite, FavoriteBorder, EditRounded, ThumbUpRounded, ThumbUpOutlined,
          Public, PublicOff, DownloadRounded, OpenInNewRounded, BookmarkBorder, Bookmark,
-         Cancel, ArrowOutward, MoveToInboxRounded, MoreVert } from "@mui/icons-material";
+         Cancel, ArrowOutward, MoveToInboxRounded, MoreVert, LinkRounded, FileCopyRounded } from "@mui/icons-material";
 import { toast } from 'react-hot-toast';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Resizable } from "re-resizable";
+import ReactPlayer from "react-player/youtube";
+import Draggable from "react-draggable";
 import MyEditor from "./RichTextEditor"
 import DeleteDialog from "./DeleteDialog";
 import CopyLinkDialog from "./CopyLinkDialog";
@@ -16,6 +20,7 @@ import Chatbot from "./Chat";
 import 'react-toastify/dist/ReactToastify.css';
 import knowledgeCardApi from "../services/KnowledgeCardService";
 import "../css/scrollbar.css";
+
 import "../css/KnowledgeCard.css";
 
 const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded }) => {
@@ -29,7 +34,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   const [summaryContent, setSummaryContent] = useState(cardData.summary || 'No Summary Yet...');
   const [tags, setTags] = useState(cardData.tags || []);
   const [qaContent, setQaContent] = useState(cardData.qna || []);
-  const [showGenerateButton, setShowGenerateButton] = useState(true);
+  const [, setShowGenerateButton] = useState(true);
   const [visibleAnswers, setVisibleAnswers] = useState([]);
   const [isfavourite, setIsfavourite] = useState(cardData.favourite || false);
   const [isAddTagOpen, setIsAddTagOpen] = useState(false);
@@ -46,18 +51,20 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   const [allCategories, setAllCategories] = useState(["AI", "Design", "Productivity", "React", "Web Development", "UX"]);
   const [categories, setCategories] = useState(cardData.category || []);
 
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
   const [downloading, setDownloading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [kmContent, setKmContent] = useState(cardData.knowledge_map || []);
   const [loadingKm, setLoadingKm] = useState(false);
-  const [showGenerateMapButton, setShowGenerateMapButton] = useState(true);
+  const [, setShowGenerateMapButton] = useState(true);
 
   const [showChat, setShowChat] = useState(false);
 
   const isOwner = userId === cardData.user_id;
   const [isBookmarked, setIsBookmarked] = useState(cardData?.bookmarked_by?.includes((userId)));
+  const menuRef = useRef(null);
   const handleTabChange = (tab) => {
     if (!isEditing) {
       setActiveTab(tab);
@@ -178,6 +185,19 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
       handleEditToggle();
       const response = await knowledgeCardApi.handleEdit(cardData, summaryContent, noteContent);
       console.log(response);
+    } catch (error) {
+      console.error("Edit error", error);
+    }
+
+  }
+
+  // Handle the click event for the "Save" button in edit mode
+  const addToNote = async (cardData, summaryContent, noteContent) => {
+    try {
+      handleTabChange('Note');
+      const response = await knowledgeCardApi.handleEdit(cardData, summaryContent, noteContent);
+      console.log(response);
+      toast.success("Note added");
     } catch (error) {
       console.error("Edit error", error);
     }
@@ -354,7 +374,38 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   
     fetchCategories();
   }, []);
+
+  const displayCategoriesInTooltip = (categories) => {
+     if (!Array.isArray(categories) || categories.length === 0) {
+        return "No categories";
+      }
+
+      return categories.slice(3,).join(", ");
+  };
  
+  // Youtube url checker
+  const isYouTubeUrl = (url) => {
+  return (
+    typeof url === "string" &&
+    (url.includes("youtube.com/watch") || url.includes("youtu.be/"))
+  );
+};
+
+useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        toggleKcMenu(false); // You might need to pass false directly
+      }
+    }
+
+    if (isKcMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isKcMenuOpen, toggleKcMenu]);
 
 
   // ===================== Actual component rendering ========================================
@@ -402,7 +453,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
             {/* More menu */}
             { isOwner && (
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-end" ref={menuRef}>
             <Tooltip title="Card Menu" arrow>
                 <IconButton
                    onClick={(e) => {
@@ -419,7 +470,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                     }`}
                   >
                     <button
-                      className="block w-full px-4 py-2 hover:bg-emerald-200"
+                      className="block w-full px-4 py-2 hover:bg-[#d1fae5]"
                       onClick={(e) => {
                         e.stopPropagation();
                         onArchiveClick();
@@ -488,12 +539,14 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                   );
                 })}
                 {categories.length > 3 && (
+                  <Tooltip title={displayCategoriesInTooltip(categories)}>
                   <div
                     className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full"
                     onClick={handleCategoryChipClick}
                   >
                     +{categories.length - 3}
                   </div>
+                  </Tooltip>
                 )}
               </div>
             )}
@@ -530,6 +583,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                   freeSolo
                   options={allCategories}
                   value={editingCategories}
+                  // eslint-disable-next-line no-unused-vars
                   onChange={async (event, newValue, reason) => {
                     const removed = editingCategories.filter(cat => !newValue.includes(cat));
                     
@@ -693,7 +747,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
 
       {isExpanded && (
-        <div className="fixed inset-0 text-black bg-black/60 backdrop-blur-sm flex items-center justify-center z-9999 px-4">
+        <div className="fixed inset-0 text-black bg-black/60 backdrop-blur-sm flex items-center justify-center z-500 px-4">
           <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] rounded-xl shadow-xl p-4 overflow-hidden">
 
 
@@ -736,15 +790,20 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
                 {isMenuOpen && (
                   <div className="absolute top-10 right-10 bg-white shadow-lg rounded-md py-2 z-50 flex flex-col text-sm min-w-[140px]">
-                    {isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={handleEditToggle}>
-                      {isEditing ? 'Stop Editing' : <><EditRounded className="mr-2"/>Edit</>}
+                    {isOwner && (<button className="px-4 py-2 text-left hover:bg-[#d1fae5] rounded-md" onClick={handleEditToggle}>
+                      {isEditing ? 'Stop Editing' : <><EditRounded className="mr-1"/>Edit</>}
                     </button>)}
+
                     {isOwner && (<DeleteDialog cardData={cardData} removeCardFromUI={removeCardFromUI} toggleKcMenu={toggleKcMenu}/>)}
-                    {cardData?.source_url && <button className="px-4 py-2 hover:bg-gray-100" onClick={handleGoToSource}>
-                      Go to Source
+
+                    {cardData?.source_url && <button className="px-4 py-2 text-left hover:bg-[#d1fae5] rounded-md" onClick={handleGoToSource}>
+                      <LinkRounded sx={{fontSize: 'large', marginRight: 1}}/>Visit Source
                     </button>}
-                    {!isOwner && (<button className="px-4 py-2 hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); handleCopy(); }}>
-                      Copy to Home
+
+                    {!isOwner && (<button className="px-4 py-2 text-left hover:bg-[#d1fae5] rounded-md" onClick={() => { setIsMenuOpen(false); handleCopy(); }}>
+                      <Tooltip title='Copy card to My Space' placement="top">
+                      <FileCopyRounded sx={{fontSize:'large'}}/> Copy Card
+                      </Tooltip>
                     </button>)}
                   </div>
                 )}
@@ -764,7 +823,7 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
 
                   <div className={`absolute right-0 top-10 bg-white shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
                     <button
-                      className="block w-full px-4 py-2 hover:bg-emerald-200"
+                      className="block w-full px-4 py-2 hover:bg-[#d1fae5]"
                       onClick={(e) => {
                         e.stopPropagation();
                         onExportClick(cardData, 'pdf');
@@ -831,13 +890,23 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                 <div className="p-6 rounded-md text-black">
                   {isEditing ? (
                     <>
-                      <MyEditor note={noteContent} setNote={handleContentChange} />
-                      <button
-                        className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 hover:scale-[1.02] transition-all"
-                        onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
-                      >
-                        💾 Save
-                      </button>
+                    <div>
+                          <MyEditor note={noteContent} setNote={handleContentChange} />
+                        </div>
+                        <div className="w-full flex justify-end">
+                            <button
+                          className="mt-4 mr-2 px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-400 hover:scale-[1.02] transition-all"
+                          onClick={handleEditToggle}
+                        >
+                          Cancel
+                        </button>
+                            <button
+                          className="mt-4 px-6 py-2 bg-[#1f7281] text-white rounded-lg hover:bg-emerald-800 hover:scale-[1.02] transition-all"
+                          onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
+                        >
+                          Save
+                        </button>
+                        </div>
                     </>
                   ) : (
                     <div
@@ -860,16 +929,16 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                         </div>
                         <div className="w-full flex justify-end">
                             <button
-                          className="mt-4 mr-2 px-6 py-2 bg-red-400 text-white rounded-lg hover:bg-red-600 hover:scale-[1.02] transition-all"
+                          className="mt-4 mr-2 px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-400 hover:scale-[1.02] transition-all"
                           onClick={handleEditToggle}
                         >
                           Cancel
                         </button>
                             <button
-                          className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 hover:scale-[1.02] transition-all"
+                          className="mt-4 px-6 py-2 bg-[#1f7281] text-white rounded-lg hover:bg-emerald-800 hover:scale-[1.02] transition-all"
                           onClick={() => onEditSaveClick(cardData, summaryContent, noteContent)}
                         >
-                          💾 Save
+                          Save
                         </button>
                         </div>
                         
@@ -878,10 +947,21 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                       <>
                         <button
                           onClick={() => setShowChat(prev => !prev)}
-                          className="bg-emerald-500 text-white rounded-md p-3 pr-5 my-5 hover:bg-emerald-600 transition-all"
+                          className="bg-[#1f7281] hover:bg-[#065f46] text-white rounded-md py-2 px-4 my-5 mx-2 text-base font-medium transition-all"
+                          style={{ textTransform: 'none', height: '40px' }}
                         >
                           💡 Ask AI
                         </button>
+
+                        {isYouTubeUrl(cardData.source_url) && (
+                          <button
+                            onClick={() => setShowVideoPlayer((prev) => !prev)}
+                            className="bg-[#1f7281] hover:bg-[#065f46] text-white rounded-md py-2 px-4 my-2 text-base font-medium transition-all"
+                            style={{ textTransform: 'none', height: '40px' }}
+                          >
+                            🎬 Watch Video
+                          </button>
+                        )}
 
                         <h2 className="text-2xl font-bold text-center mb-4">{cardData.title}</h2>
 
@@ -894,10 +974,10 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                           <p className="font-medium">Tags</p>
                           <div className="flex flex-wrap gap-2 mt-2">
                             <button
-                              className="border bg-emerald-400 text-white rounded-full px-3 py-1 text-xs hover:bg-white hover:text-emerald-500 hover:border-emerald-500 transition-all"
+                              className="border bg-[#1f7281] text-white rounded-full px-3 py-1 text-xs hover:bg-white hover:text-emerald-500 hover:border-emerald-500 transition-all"
                               onClick={openAddTag}
                             >
-                              ➕ Add Tag
+                              + Add Tag
                             </button>
                             {isAddTagOpen && (
                               <>
@@ -957,12 +1037,64 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
                           <Close />
                         </IconButton>
                       </div>
-                        <Chatbot cardId={cardData.card_id} />
+                        <Chatbot 
+                          cardId={cardData.card_id}
+                          noteContent={noteContent}
+                          setNoteContent={setNoteContent}
+                          addToNote={() => addToNote(cardData, summaryContent, noteContent)} />
                       </div>
                     </div>
                   )}
                 </div>
               )}
+
+              {/* Video Player */}
+              {showVideoPlayer && isYouTubeUrl(cardData.source_url) && (
+              <Draggable handle=".drag-handle">
+                <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[600]">
+                  <Resizable
+                    defaultSize={{
+                      width: 480,
+                      height: 270, // 16:9 aspect ratio
+                    }}
+                    minWidth={320}
+                    minHeight={180}
+                    maxWidth={800}
+                    maxHeight={450}
+                    lockAspectRatio={16 / 9}
+                    enable={{
+                      bottomRight: true,
+                      topRight: true,
+                      topLeft: true
+                    }}
+                    className="bg-black/90 rounded-lg shadow-lg"
+                  >
+                    {/* Drag Handle */}
+                    <div className="drag-handle bg-[#1f7281] text-white text-sm px-4 py-2 rounded-t-lg select-none cursor-move flex justify-between items-center">
+                      <span>🎬 YouTube Player</span>
+                      <button
+                        onClick={() => setShowVideoPlayer(false)}
+                        className="text-white bg-black/60 hover:bg-black/80 p-1 px-2 rounded-full text-xs"
+                      >
+                        ✖
+                      </button>
+                    </div>
+
+                    {/* Video Player */}
+                    <div className="w-full h-full rounded-lg overflow-hidden">
+                      <ReactPlayer
+                        url={cardData.source_url}
+                        controls
+                        pip
+                        playing
+                        width="100%"
+                        height="100%"
+                      />
+                    </div>
+                  </Resizable>
+                </div>
+              </Draggable>
+            )}
 
               {/* Q&A Tab */}
               {activeTab === 'Q&A' && (

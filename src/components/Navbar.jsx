@@ -18,7 +18,7 @@ import { useLocation } from 'react-router-dom';
 
 
 const pages = ['My Space', 'Public Space'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Dashboard', 'Logout'];
 
 
 function Navbar({ searchQuery, handleSearchChange }) {
@@ -98,7 +98,7 @@ function Navbar({ searchQuery, handleSearchChange }) {
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={()=>{handleCloseNavMenu(); if(page === 'Public Space'){
+                <MenuItem key={page} sx={{":hover":{background:'#d1fae5'}}} onClick={()=>{handleCloseNavMenu(); if(page === 'Public Space'){
                   navigate('/suites');
                 }else if(page === 'My Space') {
                   navigate('/home');
@@ -203,7 +203,7 @@ function Navbar({ searchQuery, handleSearchChange }) {
   </Box>
 </Tooltip>
             <Menu
-              sx={{ mt: '45px' }}
+              sx={{ mt: '45px'}}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
@@ -221,6 +221,7 @@ function Navbar({ searchQuery, handleSearchChange }) {
               {settings.map((setting) => (
   <MenuItem
     key={setting}
+    sx={{":hover":{background:'#d1fae5'}}}
     onClick={() => {
       handleCloseUserMenu();
 

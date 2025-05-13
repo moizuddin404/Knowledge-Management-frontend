@@ -19,6 +19,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import LockIcon from '@mui/icons-material/Lock';
 import LabelIcon from '@mui/icons-material/Label';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import Navbar from "../components/Navbar";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -143,6 +144,8 @@ const Dashboard = () => {
   ];
 
   return (
+    <>
+    <Navbar />
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box 
         sx={{ 
@@ -166,210 +169,116 @@ const Dashboard = () => {
           fontWeight="bold" 
           color="text.primary"
         >
-          Knowledge Cards Dashboard
+          Dashboard
         </Typography>
       </Box>
 
       <Divider sx={{ mb: 4 }} />
 
       {/* Summary Stats */}
-      <Grid container spacing={3} mb={4}>
-        {statsData.map(({ label, value, icon }, index) => (
-          <Grid item xs={12} sm={6} md={3} key={label}>
-            <Card 
-              elevation={3}
-              sx={{ 
-                height: '100%',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: 6
-                }
-              }}
-            >
-              <CardContent>
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    mb: 2 
-                  }}
-                >
-                  <Box 
-                    sx={{ 
-                      p: 1.5, 
-                      borderRadius: '50%', 
-                      bgcolor: theme.palette.action.hover,
-                      mr: 2
-                    }}
-                  >
-                    {icon}
-                  </Box>
-                  <Typography 
-                    variant="h6" 
-                    color="text.secondary"
-                    fontWeight="medium"
-                  >
-                    {label}
-                  </Typography>
+      <Box display="flex" gap={3} flexWrap="wrap" mb={4}>
+      {/* KPI Cards */}
+      <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(220px, 1fr))" gap={3} flex={1}>
+        {statsData.map(({ label, value, icon }) => (
+          <Card 
+            key={label}
+            elevation={3}
+            sx={{ 
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: 6
+              }
+            }}
+          >
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={2}>
+                <Box p={1.5} borderRadius="50%" bgcolor="action.hover" mr={2}>
+                  {icon}
                 </Box>
-                <Typography 
-                  variant="h3" 
-                  fontWeight="bold" 
-                  color={theme.palette.primary.main}
-                >
-                  {value}
+                <Typography variant="h6" color="text.secondary" fontWeight="medium">
+                  {label}
                 </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+              </Box>
+              <Typography variant="h4" fontWeight="bold" color="primary.main">
+                {value}
+              </Typography>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
-      {/* Charts */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ height: '100%', p: 2 }}>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 2 
-              }}
-            >
-              <Box 
-                sx={{ 
-                  p: 1, 
-                  borderRadius: '50%', 
-                  bgcolor: theme.palette.action.hover,
-                  mr: 2
-                }}
-              >
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center' 
-                  }}
-                >
-                  <VisibilityIcon color="primary" />
-                  <LockIcon color="secondary" sx={{ ml: 1 }} />
-                </Box>
+      {/* Pie Chart */}
+      <Card elevation={3} sx={{ width: 400, minWidth: 300, flexShrink: 0 }}>
+        <CardContent>
+          <Box display="flex" alignItems="center" mb={2}>
+            <Box p={1} borderRadius="50%" bgcolor="action.hover" mr={2}>
+              <Box display="flex" alignItems="center">
+                <VisibilityIcon color="primary" />
+                <LockIcon color="secondary" sx={{ ml: 1 }} />
               </Box>
-              <Typography variant="h5" fontWeight="bold">
-                Shared vs Private Cards
-              </Typography>
             </Box>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={60}
-                  paddingAngle={5}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                      stroke={theme.palette.background.paper}
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Pie>
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  formatter={(value) => {
-                    return (
-                      <span style={{ color: theme.palette.text.primary, fontSize: 14, fontWeight: 500 }}>
-                        {value}
-                      </span>
-                    );
-                  }}
-                />
-              </PieChart>
+            <Typography variant="h6" fontWeight="bold">
+              Shared vs Private Cards
+            </Typography>
+          </Box>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                innerRadius={50}
+                paddingAngle={5}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]} 
+                    stroke="#fff"
+                  />
+                ))}
+              </Pie>
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Popular Tags */}
+      <Card elevation={3} sx={{ width: 400, minWidth: 300, flexShrink: 0 }}>
+        <CardContent>
+          <Box display="flex" alignItems="center" mb={2}>
+            <Box p={1} borderRadius="50%" bgcolor="action.hover" mr={2}>
+              <LabelIcon color="primary" />
+            </Box>
+            <Typography variant="h6" fontWeight="bold">
+              Popular Tags
+            </Typography>
+          </Box>
+          {tagData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={tagData}>
+                <XAxis dataKey="tag" angle={-45} textAnchor="end" height={60} />
+                <YAxis />
+                <RechartsTooltip />
+                <Bar dataKey="count" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ height: '100%', p: 2 }}>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 2 
-              }}
-            >
-              <Box 
-                sx={{ 
-                  p: 1, 
-                  borderRadius: '50%', 
-                  bgcolor: theme.palette.action.hover,
-                  mr: 2
-                }}
-              >
-                <LabelIcon color="primary" />
-              </Box>
-              <Typography variant="h5" fontWeight="bold">
-                Popular Tags
-              </Typography>
+          ) : (
+            <Box display="flex" justifyContent="center" alignItems="center" height={250}>
+              <Typography>No tag data</Typography>
             </Box>
-            {tagData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart 
-                  data={tagData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                >
-                  <XAxis 
-                    dataKey="tag" 
-                    angle={-45} 
-                    textAnchor="end"
-                    tick={{ fontSize: 12 }}
-                    height={60}
-                  />
-                  <YAxis />
-                  <RechartsTooltip
-                    formatter={(value, name) => [`${value} cards`, 'Count']}
-                    labelFormatter={(label) => `Tag: ${label}`}
-                    contentStyle={{
-                      backgroundColor: theme.palette.background.paper,
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 4,
-                      padding: 10,
-                    }}
-                  />
-                  <Bar 
-                    dataKey="count" 
-                    fill={theme.palette.primary.main}
-                    radius={[4, 4, 0, 0]}
-                    barSize={30}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  height: 300
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  No tags data available
-                </Typography>
-              </Box>
-            )}
-          </Card>
-        </Grid>
-      </Grid>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
+
 
       {/* Recent Activity */}
       <Card elevation={3} sx={{ mb: 4 }}>
@@ -456,6 +365,7 @@ const Dashboard = () => {
         </Typography>
       </Box>
     </Container>
+    </>
   );
 };
 
