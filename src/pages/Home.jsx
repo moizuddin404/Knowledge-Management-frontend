@@ -253,8 +253,9 @@ const filteredCards = useMemo(() => {
     fetchUserId();
   }, []);
 
-  const fetchCategories = async (userId) => {
+  const fetchCategories = async () => {
     try {
+      if (!userId) return;
       const response = await axios.get(`${backendUrl}/knowledge-card/${userId}/categories`);
       setCategories(response.data.categories || []);
       console.log("Fetched categories:", response.data.categories);
@@ -264,25 +265,27 @@ const filteredCards = useMemo(() => {
   };
   
   useEffect(() => {
-    if (userId) {
-    fetchCategories(userId);
-  }
+    
+    fetchCategories();
+  
   }, [userId]);
 
   const handleNewCategoryAdded = () => {
-    if (userId) {
-    fetchCategories(userId);
-  } // refresh filter list when a new category is added
+    
+    fetchCategories();
   };
 
-const capitalizeFirstLetter = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
 
 const categoryOptions = categories.map((c) => ({
   value: c.name,
-  label: capitalizeFirstLetter(c.name) // Capitalize first letter of each category name
+  label: c.name.toUpperCase()
 }));
+
+  const filterOptions = [
+              { value: 'All', label: 'All' },
+              { value: 'Favourites', label: 'Favourites' },
+              { value: 'Archived', label: 'Archived' },
+            ];
 
   return ( 
   <>
@@ -327,30 +330,75 @@ const categoryOptions = categories.map((c) => ({
         {/* Filter Selects */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
           {/* Filter by Type */}
-          <div className="relative w-full sm:w-52">
-            {/* Filter icon on the left */}
-            <FilterListIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-800 pointer-events-none" />
+          <div className="relative w-full sm:w-52">       
 
-            {/* Custom down arrow on the right */}
-            <svg
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <Select
+              value={filterOptions.find(opt => opt.value === filter)}
+              onChange={(selected) => setFilter(selected.value)}
+              options={filterOptions}
+              className="w-full sm:w-52"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '41px',
+                  height: '41px',
+                  width: '100%',
+                  fontSize: '0.875rem',
+                  padding: '0 8px',
+                  borderColor: state.isFocused ? '#10B981' : '#ccc', // emerald-500
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.4)' : 'none', // Emerald ring
+                  '&:hover': {
+                    borderColor: '#10B981',
+                  },
+                  overflow: 'auto',
+                  scrollbarWidth: 'none',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#d1fae5',
+                  color: '#065f46',
+                  margin: '2px',
+                }),
+                multiValueContainer: (base) => ({
+                  ...base,
+                  display: 'flex',
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto',
+                  maxHeight: '36px',
+                  padding: '0',
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  scrollbarColor: '#10B981 #fff',
+                }),
+                option: (base) => ({
+                  ...base,
+                  color: 'black',
+                  backgroundColor: 'white',
+                  '&:hover': {
+                    backgroundColor: '#d1fae5',
+                    color: '#065f46',
+                  },
+                }),
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <svg
+                    className="w-4 h-4 text-gray-500 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                ),
+                IndicatorSeparator: () => null,
+              }}
+            />
 
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="appearance-none w-full pl-10 pr-8 py-2 rounded border border-gray-300 bg-white text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            >
-              <option value="All">All</option>
-              <option value="Favourites">Favourites</option>
-              <option value="Archived">Archived</option>
-            </select>
           </div>
 
           {/* Category Select */}
