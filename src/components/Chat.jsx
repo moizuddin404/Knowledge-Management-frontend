@@ -62,6 +62,7 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
             key={index}
             className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
           >
+
             <div className="flex items-start max-w-[75%]">
               <div
                 className={`px-4 py-2 rounded-lg ${
