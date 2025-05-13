@@ -97,7 +97,11 @@ const Suites = () => {
         if (pageNum === 1) {
           setKcData(newCards);
         } else {
-          setKcData((prev) => [...prev, ...newCards]);
+          setKcData((prev) => {
+          const existingIds = new Set(prev.map((card) => card._id));
+          const filteredNewCards = newCards.filter((card) => !existingIds.has(card._id));
+          return [...prev, ...filteredNewCards];
+        });
         }
 
         if (newCards.length === 0) {

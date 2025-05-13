@@ -39,8 +39,10 @@ export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu 
         color: "black",       
         width: "100%",
         padding: "8px 16px",
+        textAlign: 'left',
+        justifyContent: 'flex-start',
         '&:hover': {
-          backgroundColor: "#A7F3D0"
+          backgroundColor: "#d1fae5"
         }
       }}
        onClick={(e)=>{
@@ -66,10 +68,10 @@ export default function DeleteDialog({ cardData, removeCardFromUI, toggleKcMenu 
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={(e)=>{e.stopPropagation();handleClose();}} className="!bg-red-500 !text-white hover:!bg-red-700">
+          <Button onClick={(e)=>{e.stopPropagation();handleClose();}} className="!bg-gray-300 !text-white hover:!bg-gray-400">
             No
             </Button>
-          <Button onClick={(e)=>{e.stopPropagation();handleDeleteClick();}} autoFocus className="!bg-[#1f7281] !text-white hover:!bg-emerald-800">Yes
+          <Button onClick={(e)=>{e.stopPropagation();handleDeleteClick();}} autoFocus className="!bg-red-500 !text-white hover:!bg-red-700">Yes
           </Button>
            
         </DialogActions>

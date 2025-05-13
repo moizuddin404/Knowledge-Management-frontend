@@ -24,6 +24,8 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [isLoading, setIsLoading] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const [isLinkValid, setIsLinkValid] = useState(true);
+
 
   useEffect(() => {
     const html = draftToHtml(convertToRaw(editorState.getCurrentContent()));
@@ -41,6 +43,18 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
       }
     }
   }, [isOpen]);
+
+  const validateLink = (value) => {
+  const urlRegex = /^(https?:\/\/)(www\.)?([\w\-]+\.)+(com|org|net|in|io|dev|app|info|me|co|ai)(\/[^\s]*)?$/i;
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+  return urlRegex.test(value) || youtubeRegex.test(value);
+};
+
+const handleLinkChange = (e) => {
+  const value = e.target.value;
+  setLink(value);
+  setIsLinkValid(validateLink(value));
+};
 
   const handleSave = async () => {
     if (!link) return;
@@ -110,6 +124,7 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
         startIcon={<AddIcon />}
         onClick={() => setIsOpen(!isOpen)}
         sx={{
+          color: 'white',
           backgroundColor: '#1f7281',
           '&:hover': {
             backgroundColor: '#065f46', // emerald-800
@@ -142,9 +157,11 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
               <input
                 type="text"
                 value={link}
-                onChange={(e) => setLink(e.target.value)}
+                onChange={handleLinkChange}
                 placeholder="Enter Link: https://example.com/article"
-                className="w-full p-3 rounded-md text-center bg-gray-100 text-black placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 border border-gray-300"
+                className={`w-full p-3 rounded-md text-center bg-gray-100 text-black placeholder:text-gray-500 focus:outline-none border ${
+                  isLinkValid ? 'border-gray-300 focus:border-emerald-500' : 'border-red-500 focus:border-red-500'
+                }`}
               />
             </div>
   
@@ -170,14 +187,14 @@ const AddKnowledgeCard = ({ onSave, handleStartSaving, handleSaved, handleSavedF
                         }
                       }
                       disabled={isLoading}
-                      className="w-24 h-12 mr-2 bg-red-600 text-white rounded hover:bg-red-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-24 h-12 mr-2 bg-gray-300 text-white rounded hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     > Cancel
                   </button>
                   
                 <button
                       onClick={handleSave}
-                      disabled={isLoading || !link}
-                      className="w-24 h-12 bg-[#1f7281] text-white rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isLoading || !link || !isLinkValid}
+                      className="w-24 h-12 bg-[#1f7281] text-white rounded hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? 'Saving' : 'Save'}
                   </button>
