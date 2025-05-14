@@ -27,10 +27,11 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [isKcMenuOpen, setIsKcMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [noteContent, setNoteContent] = useState(cardData.note || 'No Note Yet...');
+  const [prevNoteContent, setPrevNoteContent] = useState("");
+  const [prevSummaryContent, setPrevSummaryContent] = useState("");
   const [summaryContent, setSummaryContent] = useState(cardData.summary || 'No Summary Yet...');
   const [tags, setTags] = useState(cardData.tags || []);
   const [qaContent, setQaContent] = useState(cardData.qna || []);
@@ -72,10 +73,12 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
     }
   };
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-    setIsMenuOpen(false);
-  };
+ const handleEditToggle = () => {
+  setPrevSummaryContent(summaryContent);
+  setPrevNoteContent(noteContent);
+  setIsEditing(true);
+  setIsMenuOpen(false);
+};
 
   const handlePublicToggle = async () => {
     const response = await knowledgeCardApi.handlePublic(cardData);
@@ -158,14 +161,17 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
   }
 
 
-  // Handle the click event for the "Download" button
+ // Handle the click event for the "Download" button
   const onExportClick = async (cardData, fileFormat) => {
     try {
       const response = await knowledgeCardApi.handleDownload(cardData, fileFormat);
 
-      const mimeType = fileFormat === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      const blob = new Blob([response], { type: mimeType });
+      const mimeType =
+        fileFormat === "pdf"
+          ? "application/pdf"
+          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
+      const blob = new Blob([response], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -176,20 +182,35 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download failed", error);
+      toast.error(error.message || "Failed to download card.");
+    } finally {
+      setDownloading(false);
     }
   };
 
   // Handle the click event for the "Save" button in edit mode
   const onEditSaveClick = async (cardData, summaryContent, noteContent) => {
-    try {
-      handleEditToggle();
-      const response = await knowledgeCardApi.handleEdit(cardData, summaryContent, noteContent);
-      console.log(response);
-    } catch (error) {
-      console.error("Edit error", error);
-    }
+  try {
+    const response = await knowledgeCardApi.handleEdit(cardData, summaryContent, noteContent);
+    console.log("Saved:", response);
 
+    // Update backup to reflect saved content
+    setPrevSummaryContent(summaryContent);
+    setPrevNoteContent(noteContent);
+
+    setIsEditing(false); // Exit edit mode
+    setIsMenuOpen(false);
+  } catch (error) {
+    console.error("Edit error", error);
   }
+};
+
+  const handleCancelEdit = () => {
+  setSummaryContent(prevSummaryContent);
+  setNoteContent(prevNoteContent);
+  setIsEditing(false);
+  setIsMenuOpen(false);
+};
 
   // Handle the click event for the "Save" button in edit mode
   const addToNote = async (cardData, summaryContent, noteContent) => {
@@ -751,7 +772,7 @@ useEffect(() => {
 
       {isExpanded && (
         <div className="fixed inset-0 text-black bg-black/60 backdrop-blur-sm flex items-center justify-center z-500 px-4">
-          <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] rounded-xl shadow-xl p-4 overflow-hidden">
+          <div className="relative flex flex-col bg-white w-full max-w-7xl h-[90%] md:h-[85%] lg:h-[70%] xl:h-auto rounded-xl shadow-xl p-4 overflow-hidden">
 
 
             {/* Tab Buttons + Menu + Export */}
@@ -793,7 +814,7 @@ useEffect(() => {
 
                 {isMenuOpen && (
                   <div className="absolute top-10 right-10 bg-white shadow-lg rounded-md py-2 z-50 flex flex-col text-sm min-w-[140px]">
-                    {isOwner && (<button className="px-4 py-2 text-left hover:bg-[#d1fae5] rounded-md" onClick={handleEditToggle}>
+                    {isOwner && (activeTab==='Note' || activeTab === 'Summary') && (<button className="px-4 py-2 text-left hover:bg-[#d1fae5] rounded-md" onClick={handleEditToggle}>
                       {isEditing ? 'Stop Editing' : <><EditRounded className="mr-1"/>Edit</>}
                     </button>)}
 
@@ -815,37 +836,23 @@ useEffect(() => {
                 <div className="relative">
                   <Tooltip title="Download Card" placement="top" arrow>
                     <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsDownloadMenuOpen(!isDownloadMenuOpen);
-                      }}
+                      onClick={async (e) => {
+                      e.stopPropagation();
+                      setDownloading(true);
+                      try {
+                        await onExportClick(cardData, 'pdf');
+                      } finally {
+                        setDownloading(false);
+                      }
+                    }}
                     >
-                      <DownloadRounded className="text-black"/>
+                       {downloading ? (
+                        <CircularProgress size={24} sx={{ color: '#10b981' }} />
+                      ) : (
+                        <DownloadRounded className="text-black" />
+                      )}
                     </IconButton>
                   </Tooltip>
-
-                  <div className={`absolute right-0 top-11 bg-white shadow-lg rounded-md overflow-hidden text-sm z-50 transition-transform duration-200 ease-in-out ${isDownloadMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
-                    <button
-                      className="block w-full px-4 py-2 hover:bg-[#d1fae5]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onExportClick(cardData, 'pdf');
-                        setIsDownloadMenuOpen(false);
-                      }}
-                    >
-                      PDF
-                    </button>
-                    {/* <button
-                      className="block w-full px-4 py-2 hover:bg-emerald-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onExportClick(cardData, 'docx');
-                        setIsDownloadMenuOpen(false);
-                      }}
-                    >
-                      DOCX
-                    </button> */}
-                  </div>
                 </div>
 
                 {/* Public Access Button */}
@@ -854,10 +861,9 @@ useEffect(() => {
                     ? (
                       <Tooltip title='Make Card Private'>
                         <IconButton
-                          className="text-black"
                           onClick={handlePublicToggle}
                         >
-                          <Public />
+                          <Public className="text-black"/>
                         </IconButton>
                       </Tooltip>
                     )
@@ -899,7 +905,7 @@ useEffect(() => {
                         <div className="w-full flex justify-end">
                             <button
                           className="mt-4 mr-2 px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-400 hover:scale-[1.02] transition-all"
-                          onClick={handleEditToggle}
+                          onClick={handleCancelEdit}
                         >
                           Cancel
                         </button>
@@ -913,7 +919,7 @@ useEffect(() => {
                     </>
                   ) : (
                     <div
-                      className="prose max-w-none"
+                      className="prose max-w-none min-h-[450px]"
                       dangerouslySetInnerHTML={{ __html: noteContent }}
                     />
                   )}
@@ -922,18 +928,18 @@ useEffect(() => {
 
               {/* Summary Tab */}
               {activeTab === 'Summary' && (
-                <div className="flex flex-col md:flex-row gap-4 p-6 font-sans max-h-[490px]">
+                <div className="flex flex-col md:flex-row gap-4 p-6 font-sans max-h-[490px] min-h-[450px]">
                   {/* Summary Area */}
-                  <div className={`${showChat ? "lg:w-3/5" : "w-full"} pr-2 overflow-y-auto transition-all duration-300`}>
+                  <div className={`${showChat ? "lg:w-3/5" : "w-full"} pr-2 overflow-y-auto transition-all duration-300 scrollable-chat` }>
                     {isEditing ? (
                       <>
-                        <div>
+                        <div> 
                           <MyEditor note={summaryContent} setNote={handleContentChange} />
                         </div>
                         <div className="w-full flex justify-end">
                             <button
                           className="mt-4 mr-2 px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-400 hover:scale-[1.02] transition-all"
-                          onClick={handleEditToggle}
+                          onClick={handleCancelEdit}
                         >
                           Cancel
                         </button>
@@ -1101,7 +1107,7 @@ useEffect(() => {
 
               {/* Q&A Tab */}
               {activeTab === 'Q&A' && (
-                <div className="p-6 rounded-md text-black font-sans space-y-4">
+                <div className="p-6 rounded-md text-black font-sans space-y-4 max-h-[490px] min-h-[450px]">
                   {qaContent.length === 0 && (
                     <button
                       className={`px-4 py-2 rounded-md font-semibold transition-all ${
@@ -1176,7 +1182,7 @@ useEffect(() => {
 
               {/* Knowledge Map Tab */}
               {activeTab === 'Knowledge Map' && (
-                <div className="p-6 rounded-md text-black font-sans">
+                <div className="p-6 rounded-md text-black font-sans max-h-[490px] min-h-[450px]">
                   {kmContent.length === 0 && (
                     <button
                       className={`px-6 py-2 rounded-md font-semibold transition-all ${
