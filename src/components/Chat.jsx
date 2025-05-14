@@ -55,7 +55,7 @@ const Chatbot = ({ cardId, noteContent, setNoteContent, addToNote }) => {
   };
 
   return (
-    <div className="flex flex-col h-[420px] max-w-3xl mx-auto p-2 pb-0">
+    <div className="flex flex-col md:h-[360px] lg:h-[380px] max-w-3xl mx-auto p-2 pb-0">
       <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-100 rounded-lg shadow-inner scrollable-chat">
         {messages.map((msg, index) => (
           <div

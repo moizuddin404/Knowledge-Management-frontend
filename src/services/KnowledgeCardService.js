@@ -56,18 +56,37 @@ const handleCopy = async (cardData, userId) => {
 };
 
 const handleDownload = async (cardData, fileFormat) => {
-  try {
-    const res = await axios.get(
-      `${backendUrl}/knowledge-card/${cardData.card_id}/download`,
-      {
-        params: { file_format: fileFormat },
-        responseType: "blob",
-      }
-    );
-    return res.data;
-  } catch (error) {
-    console.error("Error downloading file:", error);
+  const res = await axios.get(
+    `${backendUrl}/knowledge-card/${cardData.card_id}/download`,
+    {
+      params: { format: fileFormat }, // fix: backend uses `format`, not `file_format`
+      responseType: "blob",
+      validateStatus: () => true, // allow handling error status manually
+    }
+  );
+
+  // Check for backend error responses
+  const isJson = res.headers["content-type"]?.includes("application/json");
+  if (res.status !== 200) {
+    let errorMessage = "Download failed";
+    if (isJson) {
+      const reader = new FileReader();
+      return new Promise((_, reject) => {
+        reader.onload = () => {
+          try {
+            const json = JSON.parse(reader.result);
+            reject(new Error(json.detail || errorMessage));
+          } catch {
+            reject(new Error(errorMessage));
+          }
+        };
+        reader.readAsText(res.data);
+      });
+    }
+    throw new Error(errorMessage);
   }
+
+  return res.data;
 };
 
 const handleArchive = async (cardData) => {
