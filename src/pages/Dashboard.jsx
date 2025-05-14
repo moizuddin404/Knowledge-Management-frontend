@@ -208,86 +208,20 @@ const Dashboard = () => {
         ))}
       </Box>
 
-      {/* Pie Chart */}
-      <Card elevation={3} sx={{ width: 400, minWidth: 300, flexShrink: 0 }}>
-        <CardContent>
-          <Box display="flex" alignItems="center" mb={2}>
-            <Box p={1} borderRadius="50%" bgcolor="action.hover" mr={2}>
-              <Box display="flex" alignItems="center">
-                <VisibilityIcon color="primary" />
-                <LockIcon color="secondary" sx={{ ml: 1 }} />
-              </Box>
-            </Box>
-            <Typography variant="h6" fontWeight="bold">
-              Shared vs Private Cards
-            </Typography>
-          </Box>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                innerRadius={50}
-                paddingAngle={5}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                    stroke="#fff"
-                  />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Popular Tags */}
-      <Card elevation={3} sx={{ width: 400, minWidth: 300, flexShrink: 0 }}>
-        <CardContent>
-          <Box display="flex" alignItems="center" mb={2}>
-            <Box p={1} borderRadius="50%" bgcolor="action.hover" mr={2}>
-              <LabelIcon color="primary" />
-            </Box>
-            <Typography variant="h6" fontWeight="bold">
-              Popular Tags
-            </Typography>
-          </Box>
-          {tagData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={tagData}>
-                <XAxis dataKey="tag" angle={-45} textAnchor="end" height={60} />
-                <YAxis />
-                <RechartsTooltip />
-                <Bar dataKey="count" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <Box display="flex" justifyContent="center" alignItems="center" height={250}>
-              <Typography>No tag data</Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
     </Box>
 
 
-      {/* Recent Activity */}
+     {/* Recent Activity */}
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardContent>
+          {/* Header */}
           <Box 
             sx={{ 
               display: 'flex', 
-              alignItems: 'center', 
-              mb: 3 
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              mb: 3,
+              gap: 1
             }}
           >
             <Box 
@@ -295,38 +229,46 @@ const Dashboard = () => {
                 p: 1, 
                 borderRadius: '50%', 
                 bgcolor: theme.palette.action.hover,
-                mr: 2
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mr: { sm: 2 }
               }}
             >
               <AccessTimeIcon color="primary" />
             </Box>
-            <Typography variant="h5" fontWeight="bold">
+            <Typography 
+              variant="h5" 
+              fontWeight="bold" 
+              sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}
+            >
               Recent Cards
             </Typography>
           </Box>
 
-          <Paper sx={{ overflow: 'hidden' }}>
-            <Table sx={{ minWidth: 650 }}>
+          {/* Table wrapper for responsiveness */}
+          <Paper sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 650 }} size="small">
               <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Tags</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Created</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Title</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Tags</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Created</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {recent_cards.map((card) => (
+                {recent_cards.map((card, index) => (
                   <TableRow 
                     key={card.id}
                     hover
                     sx={{ 
-                      '&:last-child td, &:last-child th': { border: 0 },
                       cursor: 'pointer',
                       transition: 'background-color 0.2s',
+                      '&:last-child td, &:last-child th': { border: 0 },
                     }}
                   >
-                    <TableCell>{card.id}</TableCell>
+                    <TableCell>{index+1}</TableCell>
                     <TableCell>
                       <Typography fontWeight="medium">
                         {card.title}
@@ -358,12 +300,21 @@ const Dashboard = () => {
           </Paper>
         </CardContent>
       </Card>
-      
-      <Box sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
+
+      {/* Footer */}
+      <Box 
+        sx={{ 
+          textAlign: 'center', 
+          mt: 4, 
+          color: theme.palette.text.secondary,
+          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+        }}
+      >
         <Typography variant="body2">
-          © {new Date().getFullYear()} Knowledge Cards Dashboard
+          © {new Date().getFullYear()} Brieffy Dashboard
         </Typography>
       </Box>
+
     </Container>
     </>
   );

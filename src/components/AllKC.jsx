@@ -16,7 +16,8 @@ const AllKnowledgeCards = ({
   removeCardFromUI,
   currentTab,
   userId,
-  handleNewCategoryAdded
+  handleNewCategoryAdded,
+  currentFilter
 }) => {
   const observer = useRef();
   const { user } = useContext(AuthContext);
@@ -82,6 +83,7 @@ const AllKnowledgeCards = ({
                     currentTab={currentTab}
                     userId={userId}
                     handleNewCategoryAdded={handleNewCategoryAdded}
+                    currentFilter={currentFilter}
                   />
                 </div>
               )
