@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import SkeletonCard from '../components/SkeletonCard';
 import axios from 'axios';
@@ -25,7 +25,7 @@ const Suites = () => {
   const [page, setPage] = useState(1);
   const [value, setValue] = useState(0);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-  const { user } = useContext(AuthContext);
+  // const { user } = useContext(AuthContext);
   const [userId, setUserId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -88,7 +88,6 @@ const Suites = () => {
   const fetchBookmarkedKnowledgeCards = useCallback(
     async (pageNum = 1) => {
       setIsLoading(true);
-      const userId = user.userId;
       try {
         const response = await axios.get(`${backendUrl}/knowledge-card/bookmarked`, {
           params: { user_id: userId, skip: (pageNum - 1) * 4, limit: 4 },
@@ -113,7 +112,7 @@ const Suites = () => {
         setIsLoading(false);
       }
     },
-    [backendUrl]
+    [backendUrl, userId]
   );
 
   const handleTabChange = (event, newValue) => {
@@ -135,7 +134,7 @@ const Suites = () => {
     } else if (value === 1) {
       fetchBookmarkedKnowledgeCards(1);
     }
-  }, [value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
+  }, [userId, value, fetchPublicKnowledgeCards, fetchBookmarkedKnowledgeCards]);
 
   useEffect(() => {
     if (page === 1) return;
@@ -211,13 +210,13 @@ const Suites = () => {
   
     const categoryOptions = categories.map((c) => ({
       value: c.name,
-      label: c.name
+      label: c.name.toUpperCase()
     }));
   return (
     <>
       <Navbar searchQuery={inputValue} handleSearchChange={handleSearchChange} />
       <div className="flex flex-col md:flex-row items-center justify-between mx-12 my-10 lg:my-2 gap-4">
-        <div className="w-full md:w-1/3 lg:hidden shadow-sm">
+        <div className="w-full lg:hidden shadow-sm">
           <input
             type="text"
             placeholder="Search Your Cards..."
@@ -227,12 +226,13 @@ const Suites = () => {
           />
         </div>
       </div>
-      <div className="flex justify-between items-center mx-12 my-10 lg:my-2 gap-4">
+      {/* Tabs and Category Filter */}
+      <div className="flex flex-col md:flex-row justify-between mx-12 sm:items-start items-center gap-4 mb-6">
         <Tabs
           value={value}
           onChange={handleTabChange}
           aria-label="icon tabs example"
-          className="my-4 flex justify-center"
+          className="w-full lg:w-auto flex justify-center"
           slotProps={{
             indicator: {
               className: 'bg-emerald-400',
@@ -242,64 +242,65 @@ const Suites = () => {
           <Tab icon={<AppsIcon className="text-emerald-500" />} aria-label="All" />
           <Tab icon={<BookmarkIcon className="text-emerald-500" />} aria-label="Bookmarked" />
         </Tabs>
+
         {/* Category Select */}
-                  <div className=" w-full sm:w-64">
-                    <Select
-                      isMulti
-                      options={categoryOptions}
-                      value={selectedCategories}
-                      onChange={(selected) => setSelectedCategories(selected)}
-                      closeMenuOnSelect={false}
-                      className="w-full"
-                      styles={{
-                        control: (base, state) => ({
-                          ...base,
-                          minHeight: '41px',
-                          height: '41px',
-                          width: '100%',
-                          fontSize: '0.875rem',
-                          padding: '0 8px',
-                          borderColor: state.isFocused ? '#10B981' : '#ccc', // emerald-500
-                          boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.4)' : 'none', // Emerald ring
-                          '&:hover': {
-                            borderColor: '#10B981',
-                          },
-                          overflow: 'auto',
-                          scrollbarWidth: 'none',
-                        }),
-                        multiValue: (base) => ({
-                          ...base,
-                          backgroundColor: '#d1fae5',
-                          color: '#065f46',
-                          margin: '2px',
-                        }),
-                        multiValueContainer: (base) => ({
-                          ...base,
-                          display: 'flex',
-                          flexWrap: 'nowrap',
-                          overflowX: 'auto',
-                          maxHeight: '36px',
-                          padding: '0',
-                        }),
-                        menuList: (base) => ({
-                          ...base,
-                          maxHeight: '200px',
-                          overflowY: 'auto',
-                          scrollbarColor: '#10B981 #fff',
-                        }),
-                        option: (base) => ({
-                          ...base,
-                          color: 'black',
-                          backgroundColor: 'white',
-                          '&:hover': {
-                            backgroundColor: '#d1fae5',
-                            color: '#065f46',
-                          },
-                        }),
-                      }}
-                      placeholder="Filter by category"
-                    />
-                  </div>
+        <div className="w-full sm:w-80">
+           <Select
+              isMulti
+              options={categoryOptions}
+              value={selectedCategories}
+              onChange={(selected) => setSelectedCategories(selected)}
+              closeMenuOnSelect={false}
+              className="w-full"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '41px',
+                  height: '41px',
+                  width: '100%',
+                  fontSize: '0.875rem',
+                  padding: '0 8px',
+                  borderColor: state.isFocused ? '#10B981' : '#ccc', // emerald-500
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.4)' : 'none', // Emerald ring
+                  '&:hover': {
+                    borderColor: '#10B981',
+                  },
+                  overflow: 'auto',
+                  scrollbarWidth: 'none',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#d1fae5',
+                  color: '#065f46',
+                  margin: '2px',
+                }),
+                multiValueContainer: (base) => ({
+                  ...base,
+                  display: 'flex',
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto',
+                  maxHeight: '36px',
+                  padding: '0',
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  scrollbarColor: '#10B981 #fff',
+                }),
+                option: (base) => ({
+                  ...base,
+                  color: 'black',
+                  backgroundColor: 'white',
+                  '&:hover': {
+                    backgroundColor: '#d1fae5',
+                    color: '#065f46',
+                  },
+                }),
+              }}
+              placeholder="Filter by category"
+            />
+        </div>
       </div>
 
       <AllKnowledgeCards

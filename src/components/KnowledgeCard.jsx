@@ -23,7 +23,7 @@ import "../css/scrollbar.css";
 
 import "../css/KnowledgeCard.css";
 
-const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded }) => {
+const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleNewCategoryAdded, currentFilter }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('Summary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -110,10 +110,17 @@ const KnowledgeCard = ({ cardData, removeCardFromUI, currentTab, userId, handleN
     }
   };
 
-  const onFavouriteClick = async () => {
+ const onFavouriteClick = async () => {
+    const wasFavourite = isfavourite;
     setIsfavourite(!isfavourite);
+
     const response = await knowledgeCardApi.handlefavourite(cardData);
     console.log("Favourite response", response);
+
+    // Only remove if it was a favourite AND we're in Favourites filter
+    if (wasFavourite && currentFilter === "Favourites") {
+      removeCardFromUI(cardData.card_id);
+    }
   };
 
   const onLikeClick = async (e) => {

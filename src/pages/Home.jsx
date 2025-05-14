@@ -478,6 +478,7 @@ const categoryOptions = categories.map((c) => ({
           removeCardFromUI={handleRemoveCard}
           userId={userId}
           handleNewCategoryAdded={handleNewCategoryAdded}
+          currentFilter={filter}
         />
         <BackToTop />
         </>    
