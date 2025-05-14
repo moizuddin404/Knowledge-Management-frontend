@@ -11,6 +11,7 @@ import debounce from 'lodash.debounce';
 import knowledgeCardApi from "../services/KnowledgeCardService";
 import Select from 'react-select';
 import toast from "react-hot-toast";
+import SavingSkeletonCard from "../components/SavingSkeletonCard";
 
 const Home = () => {
   const [kcData, setKcData] = useState([]);
